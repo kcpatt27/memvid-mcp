@@ -37,8 +37,13 @@ tests/fixtures/*.json
 *.temp
 
 # Memory banks (user data - should not be in repo)
+memory-bank/
 memory-banks/
 .memvid/
+
+# Temporary files and debugging
+temp/
+debug/
 
 # OS generated files
 .DS_Store
