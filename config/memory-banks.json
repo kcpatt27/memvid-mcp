@@ -1,0 +1,83 @@
+{
+  "banks": {
+    "direct-test": {
+      "name": "direct-test",
+      "description": "Auto-discovered memory bank",
+      "size": 151686,
+      "created": "2025-06-08T12:26:20.692Z",
+      "last_updated": "2025-06-08T12:26:20.697Z",
+      "tags": [
+        "auto-discovered"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\direct-test.mp4"
+    },
+    "fixed-test-1749348520657": {
+      "name": "fixed-test-1749348520657",
+      "description": "Auto-discovered memory bank",
+      "size": 42826,
+      "created": "2025-06-08T12:26:20.700Z",
+      "last_updated": "2025-06-08T12:26:20.700Z",
+      "tags": [
+        "auto-discovered"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\fixed-test-1749348520657.mp4"
+    },
+    "minimal-test": {
+      "name": "minimal-test",
+      "description": "Auto-discovered memory bank",
+      "size": 42768,
+      "created": "2025-06-08T12:26:20.704Z",
+      "last_updated": "2025-06-08T12:26:20.704Z",
+      "tags": [
+        "auto-discovered"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\minimal-test.mp4"
+    },
+    "test-bank-1749348347510": {
+      "name": "test-bank-1749348347510",
+      "description": "Auto-discovered memory bank",
+      "size": 42815,
+      "created": "2025-06-08T12:26:20.708Z",
+      "last_updated": "2025-06-08T12:26:20.708Z",
+      "tags": [
+        "auto-discovered"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\test-bank-1749348347510.mp4"
+    },
+    "search_benchmark_1749398961496": {
+      "name": "search_benchmark_1749398961496",
+      "description": "Test bank for search benchmarking",
+      "size": 10,
+      "created": "2025-06-08T16:09:51.530Z",
+      "last_updated": "2025-06-08T16:09:51.530Z",
+      "tags": [
+        "benchmark"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\search_benchmark_1749398961496.mp4"
+    },
+    "search_benchmark_1749399522832": {
+      "name": "search_benchmark_1749399522832",
+      "description": "Test bank for search benchmarking",
+      "size": 10,
+      "created": "2025-06-08T16:19:12.858Z",
+      "last_updated": "2025-06-08T16:19:12.858Z",
+      "tags": [
+        "benchmark"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\search_benchmark_1749399522832.mp4"
+    },
+    "search_benchmark_1749403584508": {
+      "name": "search_benchmark_1749403584508",
+      "description": "Test bank for search benchmarking",
+      "size": 10,
+      "created": "2025-06-08T17:26:54.589Z",
+      "last_updated": "2025-06-08T17:26:54.589Z",
+      "tags": [
+        "benchmark"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\search_benchmark_1749403584508.mp4"
+    }
+  },
+  "last_updated": "2025-06-08T17:26:54.589Z",
+  "version": "1.0.0"
+}

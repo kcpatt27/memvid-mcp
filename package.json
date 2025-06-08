@@ -1,0 +1,53 @@
+{
+  "name": "@kcpatt27/memvid-mcp-server",
+  "version": "1.0.0",
+  "description": "MemVid MCP Server - AI Memory Bank Management with Enhanced Search",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "memvid-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "test": "node test-simple-tools.js",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "memory",
+    "search",
+    "memvid",
+    "cursor",
+    "claude"
+  ],
+  "author": "kcpatt27",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kcpatt27/memvid-mcp-server"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+} 

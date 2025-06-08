@@ -1,0 +1,331 @@
+{
+  "suite_name": "performance_benchmark_1749398871371",
+  "started_at": "2025-06-08T16:07:51.371Z",
+  "completed_at": "2025-06-08T16:13:59.194Z",
+  "benchmarks": [
+    {
+      "operation": "create_memory_bank_small_text",
+      "duration_ms": 30028.6406,
+      "memory_usage_mb": -0.34332275390625,
+      "timestamp": "2025-06-08T16:08:21.446Z",
+      "metadata": {
+        "chunks_created": 0,
+        "content_size": 1200,
+        "target": "<2s",
+        "success": false
+      }
+    },
+    {
+      "operation": "create_memory_bank_medium_text",
+      "duration_ms": 30023.9749,
+      "memory_usage_mb": 0.1174468994140625,
+      "timestamp": "2025-06-08T16:08:51.476Z",
+      "metadata": {
+        "chunks_created": 0,
+        "content_size": 12000,
+        "target": "<2s",
+        "success": false
+      }
+    },
+    {
+      "operation": "create_memory_bank_large_text",
+      "duration_ms": 30015.677499999998,
+      "memory_usage_mb": 0.1143646240234375,
+      "timestamp": "2025-06-08T16:09:21.494Z",
+      "metadata": {
+        "chunks_created": 0,
+        "content_size": 60000,
+        "target": "<2s",
+        "success": false
+      }
+    },
+    {
+      "operation": "search_simple",
+      "duration_ms": 27658.113200000007,
+      "memory_usage_mb": 0.33454132080078125,
+      "timestamp": "2025-06-08T16:10:19.190Z",
+      "metadata": {
+        "query": "machine learning",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 1
+      }
+    },
+    {
+      "operation": "search_simple",
+      "duration_ms": 26441.989699999976,
+      "memory_usage_mb": 0.0999603271484375,
+      "timestamp": "2025-06-08T16:10:45.632Z",
+      "metadata": {
+        "query": "machine learning",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 2
+      }
+    },
+    {
+      "operation": "search_simple",
+      "duration_ms": 27479.660199999984,
+      "memory_usage_mb": 0.095306396484375,
+      "timestamp": "2025-06-08T16:11:13.111Z",
+      "metadata": {
+        "query": "machine learning",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 3
+      }
+    },
+    {
+      "operation": "search_medium",
+      "duration_ms": 26793.679999999993,
+      "memory_usage_mb": -0.7734756469726562,
+      "timestamp": "2025-06-08T16:11:39.905Z",
+      "metadata": {
+        "query": "artificial intelligence and deep learning algorithms",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 1
+      }
+    },
+    {
+      "operation": "search_medium",
+      "duration_ms": 27050.598300000012,
+      "memory_usage_mb": 0.09372711181640625,
+      "timestamp": "2025-06-08T16:12:06.956Z",
+      "metadata": {
+        "query": "artificial intelligence and deep learning algorithms",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 2
+      }
+    },
+    {
+      "operation": "search_medium",
+      "duration_ms": 28332.67420000001,
+      "memory_usage_mb": 0.09410858154296875,
+      "timestamp": "2025-06-08T16:12:35.289Z",
+      "metadata": {
+        "query": "artificial intelligence and deep learning algorithms",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 3
+      }
+    },
+    {
+      "operation": "search_complex",
+      "duration_ms": 26561.87949999998,
+      "memory_usage_mb": 0.09377288818359375,
+      "timestamp": "2025-06-08T16:13:01.851Z",
+      "metadata": {
+        "query": "computer vision natural language processing optimization techniques",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 1
+      }
+    },
+    {
+      "operation": "search_complex",
+      "duration_ms": 28169.31310000003,
+      "memory_usage_mb": 0.097503662109375,
+      "timestamp": "2025-06-08T16:13:30.021Z",
+      "metadata": {
+        "query": "computer vision natural language processing optimization techniques",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 2
+      }
+    },
+    {
+      "operation": "search_complex",
+      "duration_ms": 28786.964699999953,
+      "memory_usage_mb": 0.1007537841796875,
+      "timestamp": "2025-06-08T16:13:58.807Z",
+      "metadata": {
+        "query": "computer vision natural language processing optimization techniques",
+        "results_count": 0,
+        "target": "<500ms",
+        "run": 3
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.38260000001173466,
+      "memory_usage_mb": 0.00064849853515625,
+      "timestamp": "2025-06-08T16:13:58.811Z",
+      "metadata": {
+        "step": 1,
+        "heap_used_mb": 4.908111572265625,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 2.8131370544433594,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.046399999991990626,
+      "memory_usage_mb": 0.00469207763671875,
+      "timestamp": "2025-06-08T16:13:58.811Z",
+      "metadata": {
+        "step": 2,
+        "heap_used_mb": 4.9121551513671875,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 3.8131370544433594,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.033900000038556755,
+      "memory_usage_mb": 0.00591278076171875,
+      "timestamp": "2025-06-08T16:13:58.811Z",
+      "metadata": {
+        "step": 3,
+        "heap_used_mb": 4.9133758544921875,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 4.813137054443359,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.04369999998016283,
+      "memory_usage_mb": 0.00713348388671875,
+      "timestamp": "2025-06-08T16:13:58.811Z",
+      "metadata": {
+        "step": 4,
+        "heap_used_mb": 4.9145965576171875,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 5.813137054443359,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.02869999996619299,
+      "memory_usage_mb": 0.00835418701171875,
+      "timestamp": "2025-06-08T16:13:58.811Z",
+      "metadata": {
+        "step": 5,
+        "heap_used_mb": 4.9158172607421875,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 6.813137054443359,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.02449999999953434,
+      "memory_usage_mb": 0.00957489013671875,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "step": 6,
+        "heap_used_mb": 4.9170379638671875,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 7.813137054443359,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.03259999997681007,
+      "memory_usage_mb": 0.011138916015625,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "step": 7,
+        "heap_used_mb": 4.918601989746094,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 8.81313705444336,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.024699999950826168,
+      "memory_usage_mb": 0.012359619140625,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "step": 8,
+        "heap_used_mb": 4.919822692871094,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 9.81313705444336,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.060400000016670674,
+      "memory_usage_mb": 0.013580322265625,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "step": 9,
+        "heap_used_mb": 4.921043395996094,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 10.81313705444336,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "resource_usage_step",
+      "duration_ms": 0.014200000034179538,
+      "memory_usage_mb": 0.014801025390625,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "step": 10,
+        "heap_used_mb": 4.922264099121094,
+        "heap_total_mb": 5.4609375,
+        "external_mb": 11.81313705444336,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "sustained_resource_usage",
+      "duration_ms": 1.3976999999722466,
+      "memory_usage_mb": 0.01568603515625,
+      "timestamp": "2025-06-08T16:13:58.812Z",
+      "metadata": {
+        "operations": 10,
+        "memory_growth_mb": 0.01568603515625,
+        "target": "<200MB baseline"
+      }
+    },
+    {
+      "operation": "concurrent_operations_1",
+      "duration_ms": 100.60930000001099,
+      "memory_usage_mb": 0.007080078125,
+      "timestamp": "2025-06-08T16:13:58.914Z",
+      "metadata": {
+        "concurrency_level": 1,
+        "target": "supported"
+      }
+    },
+    {
+      "operation": "concurrent_operations_3",
+      "duration_ms": 155.69939999998314,
+      "memory_usage_mb": 0.007537841796875,
+      "timestamp": "2025-06-08T16:13:59.069Z",
+      "metadata": {
+        "concurrency_level": 3,
+        "target": "supported"
+      }
+    },
+    {
+      "operation": "concurrent_operations_5",
+      "duration_ms": 123.65669999999227,
+      "memory_usage_mb": -0.8707275390625,
+      "timestamp": "2025-06-08T16:13:59.193Z",
+      "metadata": {
+        "concurrency_level": 5,
+        "target": "supported"
+      }
+    }
+  ],
+  "summary": {
+    "total_operations": 26,
+    "average_duration_ms": 12989.431565384612,
+    "max_duration_ms": 30028.6406,
+    "min_duration_ms": 0.014200000034179538,
+    "p95_duration_ms": 30023.9749,
+    "total_memory_usage_mb": -0.6275405883789062,
+    "peak_memory_usage_mb": 0.33454132080078125
+  }
+}

@@ -1,0 +1,80 @@
+# Dependencies
+node_modules/
+*.lock
+
+# Build output
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+memory-bank.log*
+memvid_bridge.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Test artifacts and temporary files
+test-data/
+test-data-*/
+tests/fixtures/*.mp4
+tests/fixtures/*.faiss
+tests/fixtures/*.json
+*.tmp
+*.temp
+
+# Memory banks (user data - should not be in repo)
+memory-banks/
+.memvid/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+memvid-env/
+
+# Temporary files
+temp_text_*.txt
+

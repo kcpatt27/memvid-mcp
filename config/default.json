@@ -1,0 +1,22 @@
+{
+  "memvid": {
+    "chunk_size": 512,
+    "overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "storage": {
+    "memory_banks_dir": "./memory-banks",
+    "max_file_size": "100MB",
+    "cleanup_temp_files": true
+  },
+  "search": {
+    "default_top_k": 5,
+    "min_score_threshold": 0.3,
+    "max_context_tokens": 4000
+  },
+  "performance": {
+    "cache_size": 100,
+    "parallel_processing": true,
+    "max_concurrent_searches": 5
+  }
+} 
