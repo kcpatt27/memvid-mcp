@@ -15,6 +15,9 @@ import logging
 import threading
 import time
 
+# Suppress all warnings
+warnings.filterwarnings('ignore')
+
 # Enhanced logging setup for concurrent operations debugging
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +73,10 @@ class DirectMemvidBridge:
                 
             logger.info("Loading heavy dependencies (numpy, torch, sentence_transformers, memvid)...")
             
+            # Temporarily redirect stdout to stderr to capture unwanted prints from libraries
+            original_stdout = sys.stdout
+            sys.stdout = sys.stderr
+
             try:
                 # Import heavy dependencies
                 logger.info("Loading numpy...")
@@ -119,6 +126,10 @@ class DirectMemvidBridge:
                 logger.error(f"Exception type: {type(e).__name__}")
                 logger.error(f"Traceback: {traceback.format_exc()}")
                 raise e
+            finally:
+                # Restore stdout
+                sys.stdout = original_stdout
+                logger.info("Restored stdout.")
     
     def _get_request_id(self):
         """Thread-safe request ID generation"""
@@ -142,13 +153,81 @@ class DirectMemvidBridge:
             with self._encoders_lock:
                 self.encoders[f"{bank_name}_{request_id}"] = encoder
             
-            # Process sources
+            # Process sources properly by type
             content_text = ""
             for source in sources:
-                if isinstance(source, str):
-                    content_text += source + "\n\n"
-                elif isinstance(source, dict) and 'content' in source:
-                    content_text += source['content'] + "\n\n"
+                try:
+                    if isinstance(source, str):
+                        content_text += source + "\n\n"
+                    elif isinstance(source, dict):
+                        source_type = source.get('type', 'text')
+                        source_path = source.get('path', '')
+                        
+                        if source_type == 'text':
+                            # Direct text content
+                            content_text += source_path + "\n\n"
+                        elif source_type == 'file':
+                            # Read file content
+                            logger.info(f"[REQ-{request_id}] Reading file: {source_path}")
+                            if os.path.exists(source_path):
+                                with open(source_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                    file_content = f.read()
+                                    content_text += f"\n\n=== {os.path.basename(source_path)} ===\n\n"
+                                    content_text += file_content + "\n\n"
+                            else:
+                                logger.warning(f"[REQ-{request_id}] File not found: {source_path}")
+                        elif source_type == 'directory':
+                            # Process directory contents
+                            logger.info(f"[REQ-{request_id}] Processing directory: {source_path}")
+                            if os.path.exists(source_path) and os.path.isdir(source_path):
+                                options = source.get('options', {})
+                                file_types = options.get('file_types', ['txt', 'md', 'py', 'js', 'ts', 'json'])
+                                
+                                # Add dot prefix if not present
+                                file_types = [ft if ft.startswith('.') else f'.{ft}' for ft in file_types]
+                                
+                                for root, dirs, files in os.walk(source_path):
+                                    for file in files:
+                                        file_path = os.path.join(root, file)
+                                        file_ext = os.path.splitext(file)[1].lower()
+                                        
+                                        if file_ext in file_types:
+                                            try:
+                                                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                                    file_content = f.read()
+                                                    rel_path = os.path.relpath(file_path, source_path)
+                                                    content_text += f"\n\n=== {rel_path} ===\n\n"
+                                                    content_text += file_content + "\n\n"
+                                                    logger.info(f"[REQ-{request_id}] Processed file: {rel_path}")
+                                            except Exception as e:
+                                                logger.warning(f"[REQ-{request_id}] Could not read file {file_path}: {e}")
+                            else:
+                                logger.warning(f"[REQ-{request_id}] Directory not found: {source_path}")
+                        elif source_type == 'url':
+                            # URL fetching (basic implementation)
+                            logger.info(f"[REQ-{request_id}] Fetching URL: {source_path}")
+                            try:
+                                import urllib.request
+                                with urllib.request.urlopen(source_path) as response:
+                                    url_content = response.read().decode('utf-8', errors='ignore')
+                                    content_text += f"\n\n=== {source_path} ===\n\n"
+                                    content_text += url_content + "\n\n"
+                            except Exception as e:
+                                logger.warning(f"[REQ-{request_id}] Could not fetch URL {source_path}: {e}")
+                        elif 'content' in source:
+                            # Legacy content field support
+                            content_text += source['content'] + "\n\n"
+                        else:
+                            logger.warning(f"[REQ-{request_id}] Unknown source type or missing content: {source}")
+                            
+                except Exception as e:
+                    logger.error(f"[REQ-{request_id}] Error processing source {source}: {e}")
+                    continue
+            
+            if not content_text.strip():
+                raise ValueError("No content was extracted from sources. Please check source paths and types.")
+            
+            logger.info(f"[REQ-{request_id}] Extracted {len(content_text)} characters from sources")
             
             # Add content to encoder
             encoder.add_text(content_text)
@@ -217,6 +296,125 @@ class DirectMemvidBridge:
             
         except Exception as e:
             logger.error(f"[REQ-{request_id}] Failed to search memory bank {video_path}: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {
+                "status": "error",
+                "error": str(e)
+            }
+
+    def add_content_to_bank(self, bank_path: str, content: str, metadata: dict = None, **kwargs):
+        """Add content to an existing memory bank - Thread-safe implementation"""
+        request_id = self._get_request_id()
+        try:
+            logger.info(f"[REQ-{request_id}] Adding content to memory bank: {bank_path}")
+            
+            # Lazy load heavy dependencies only when needed
+            self._ensure_heavy_imports()
+            
+            # Derive file paths from bank_path
+            # bank_path could be the .mp4 file or the base name
+            base_path = bank_path.replace('.mp4', '').replace('.json', '').replace('.faiss', '')
+            video_path = f"{base_path}.mp4"
+            index_path = f"{base_path}.json"
+            faiss_path = f"{base_path}.faiss"
+            
+            # Check if memory bank exists
+            if not os.path.exists(video_path) or not os.path.exists(index_path):
+                raise ValueError(f"Memory bank not found at {base_path}")
+            
+            logger.info(f"[REQ-{request_id}] Loading existing memory bank from {base_path}")
+            
+            # Load the existing retriever/encoder to get the current state
+            # Create a new encoder instance for adding content
+            encoder = self.MemvidEncoder()
+            
+            # Read existing JSON index to get current chunks
+            try:
+                with open(index_path, 'r', encoding='utf-8') as f:
+                    existing_index = json.load(f)
+                    
+                # Add existing content to the new encoder
+                if 'chunks' in existing_index and isinstance(existing_index['chunks'], list):
+                    logger.info(f"[REQ-{request_id}] Loading {len(existing_index['chunks'])} existing chunks")
+                    for chunk in existing_index['chunks']:
+                        if isinstance(chunk, dict) and 'text' in chunk:
+                            encoder.add_text(chunk['text'])
+                        elif isinstance(chunk, str):
+                            encoder.add_text(chunk)
+                            
+            except Exception as e:
+                logger.warning(f"[REQ-{request_id}] Could not load existing index: {e}")
+                # If we can't load existing content, we'll just add the new content
+                # This might result in a partial rebuild, but it's better than failing
+            
+            # Add the new content
+            if metadata:
+                # Format content with metadata if provided
+                formatted_content = f"\n\n=== New Content ===\n"
+                if metadata.get('source'):
+                    formatted_content += f"Source: {metadata['source']}\n"
+                if metadata.get('category'):
+                    formatted_content += f"Category: {metadata['category']}\n"
+                if metadata.get('timestamp'):
+                    formatted_content += f"Timestamp: {metadata['timestamp']}\n"
+                formatted_content += f"\n{content}\n\n"
+            else:
+                formatted_content = f"\n\n=== New Content ===\n{content}\n\n"
+            
+            # Add new content to encoder
+            encoder.add_text(formatted_content)
+            logger.info(f"[REQ-{request_id}] Added {len(content)} characters of new content")
+            
+            # Create backup of existing files
+            backup_video = f"{video_path}.backup"
+            backup_index = f"{index_path}.backup" 
+            backup_faiss = f"{faiss_path}.backup"
+            
+            try:
+                if os.path.exists(video_path):
+                    os.rename(video_path, backup_video)
+                if os.path.exists(index_path):
+                    os.rename(index_path, backup_index)
+                if os.path.exists(faiss_path):
+                    os.rename(faiss_path, backup_faiss)
+                    
+                # Rebuild the memory bank with all content (existing + new)
+                result = encoder.build_video(video_path, base_path)
+                
+                # Clean up backup files if successful
+                for backup_file in [backup_video, backup_index, backup_faiss]:
+                    if os.path.exists(backup_file):
+                        os.remove(backup_file)
+                        
+                logger.info(f"[REQ-{request_id}] Successfully added content to memory bank: {base_path}")
+                
+                # Invalidate cached retriever since the bank has been updated
+                retriever_key = f"{video_path}:{index_path}"
+                if retriever_key in self.retrievers:
+                    del self.retrievers[retriever_key]
+                    logger.info(f"[REQ-{request_id}] Invalidated cached retriever for updated bank")
+                
+                return {
+                    "status": "success",
+                    "bank_path": base_path,
+                    "chunks_added": 1,  # Estimate - could be calculated more precisely
+                    "stats": result
+                }
+                
+            except Exception as e:
+                # Restore backup files if rebuild failed
+                logger.error(f"[REQ-{request_id}] Rebuild failed, restoring backups: {e}")
+                
+                for original, backup in [(video_path, backup_video), (index_path, backup_index), (faiss_path, backup_faiss)]:
+                    if os.path.exists(backup):
+                        if os.path.exists(original):
+                            os.remove(original)
+                        os.rename(backup, original)
+                        
+                raise e
+                
+        except Exception as e:
+            logger.error(f"[REQ-{request_id}] Failed to add content to memory bank {bank_path}: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             return {
                 "status": "error",
@@ -307,6 +505,39 @@ def main():
                                 'success': False,
                                 'error': result.get('error', 'Unknown error'),
                                 'results': []
+                            }
+                        }
+                    
+                    print(json.dumps(response), flush=True)
+                    
+                elif method == 'add_content':
+                    # Add content to existing memory bank
+                    bank_path = params['bank_path']
+                    content = params['content']
+                    metadata = params.get('metadata', {})
+                    
+                    # Extract other parameters
+                    other_params = {k: v for k, v in params.items() 
+                                  if k not in ['bank_path', 'content', 'metadata']}
+                    
+                    result = bridge.add_content_to_bank(bank_path, content, metadata, **other_params)
+                    
+                    # Format as JSON-RPC response
+                    if result.get('status') == 'success':
+                        response = {
+                            'id': request_id,
+                            'result': {
+                                'success': True,
+                                'chunks_added': result.get('chunks_added', 1)
+                            }
+                        }
+                    else:
+                        response = {
+                            'id': request_id,
+                            'result': {
+                                'success': False,
+                                'error': result.get('error', 'Unknown error'),
+                                'chunks_added': 0
                             }
                         }
                     

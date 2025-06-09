@@ -7,6 +7,7 @@ import {
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
+  InitializeRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -44,7 +45,8 @@ class MemvidMCPServer {
       }
     );
 
-    this.setupHandlers();
+    // Don't set up handlers here - tools aren't initialized yet
+    // setupHandlers() will be called after tools are created in initialize()
   }
 
   async initialize(): Promise<void> {
@@ -71,19 +73,16 @@ class MemvidMCPServer {
       // Initialize health tools
       this.healthTools = new HealthTools((this.memoryTools as any).memvid);
       
+      // NOW setup MCP request handlers - tools are initialized
+      this.setupHandlers();
+      
       logger.info('MemVid MCP Server initialized successfully');
     } catch (error) {
       logger.error('Failed to initialize memory tools:', error);
-      logger.info('Server will continue with limited functionality');
-      
-      // Create a minimal memory tools instance for error responses
-      this.memoryTools = new MemoryTools(this.config);
-      // Create minimal health tools as well
-      try {
-        this.healthTools = new HealthTools((this.memoryTools as any).memvid);
-      } catch (healthError) {
-        logger.warn('Failed to initialize health tools:', healthError);
-      }
+      // Re-throw the error to ensure the server doesn't start in a broken state.
+      // This will be caught by the main() catch block, which provides a helpful
+      // message to the user.
+      throw error;
     }
   }
 
@@ -99,11 +98,17 @@ class MemvidMCPServer {
       const configContent = await fs.readFile(configPath, 'utf-8');
       this.config = JSON.parse(configContent);
       
-      // Convert relative paths to absolute paths based on server directory
-      if (this.config.storage.memory_banks_dir.startsWith('./')) {
-        this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir.substring(2));
-      } else if (!path.isAbsolute(this.config.storage.memory_banks_dir)) {
-        this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir);
+      // Override with environment variable if set (important for MCP deployment)
+      if (process.env.MEMORY_BANKS_DIR) {
+        this.config.storage.memory_banks_dir = process.env.MEMORY_BANKS_DIR;
+        logger.info(`Memory banks directory overridden by environment variable: ${this.config.storage.memory_banks_dir}`);
+      } else {
+        // Convert relative paths to absolute paths based on server directory
+        if (this.config.storage.memory_banks_dir.startsWith('./')) {
+          this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir.substring(2));
+        } else if (!path.isAbsolute(this.config.storage.memory_banks_dir)) {
+          this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir);
+        }
       }
       
       logger.info(`Configuration loaded from ${configPath}`);
@@ -118,7 +123,7 @@ class MemvidMCPServer {
           embedding_model: 'sentence-transformers/all-MiniLM-L6-v2'
         },
         storage: {
-          memory_banks_dir: path.join(serverDir, 'memory-banks'),
+          memory_banks_dir: process.env.MEMORY_BANKS_DIR || path.join(serverDir, 'memory-banks'),
           max_file_size: '100MB',
           cleanup_temp_files: true
         },
@@ -139,6 +144,21 @@ class MemvidMCPServer {
   }
 
   private setupHandlers(): void {
+    // Handle initialization requests
+    this.server.setRequestHandler(InitializeRequestSchema, async (request) => {
+      logger.info('Received MCP initialization request');
+      return {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {},
+        },
+        serverInfo: {
+          name: "memvid-mcp",
+          version: "1.0.0",
+        },
+      };
+    });
+
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
@@ -394,6 +414,12 @@ class MemvidMCPServer {
       try {
         switch (name) {
           case 'create_memory_bank': {
+            if (!this.memoryTools) {
+              throw new McpError(
+                ErrorCode.InternalError,
+                'Memory tools not available'
+              );
+            }
             const validatedArgs = CreateMemoryBankArgsSchema.parse(args);
             const result = await this.memoryTools.createMemoryBank(validatedArgs);
             return {
@@ -407,6 +433,12 @@ class MemvidMCPServer {
           }
 
           case 'search_memory': {
+            if (!this.memoryTools) {
+              throw new McpError(
+                ErrorCode.InternalError,
+                'Memory tools not available'
+              );
+            }
             const validatedArgs = SearchMemoryArgsSchema.parse(args);
             const result = await this.memoryTools.searchMemory(validatedArgs);
             return {
@@ -420,6 +452,12 @@ class MemvidMCPServer {
           }
 
           case 'list_memory_banks': {
+            if (!this.memoryTools) {
+              throw new McpError(
+                ErrorCode.InternalError,
+                'Memory tools not available'
+              );
+            }
             const validatedArgs = ListMemoryBanksArgsSchema.parse(args);
             const result = await this.memoryTools.listMemoryBanks(validatedArgs);
             return {
@@ -433,6 +471,12 @@ class MemvidMCPServer {
           }
 
           case 'add_to_memory': {
+            if (!this.memoryTools) {
+              throw new McpError(
+                ErrorCode.InternalError,
+                'Memory tools not available'
+              );
+            }
             const validatedArgs = AddToMemoryArgsSchema.parse(args);
             const result = await this.memoryTools.addToMemory(validatedArgs);
             return {
@@ -446,6 +490,12 @@ class MemvidMCPServer {
           }
 
           case 'get_context': {
+            if (!this.memoryTools) {
+              throw new McpError(
+                ErrorCode.InternalError,
+                'Memory tools not available'
+              );
+            }
             const validatedArgs = GetContextArgsSchema.parse(args);
             const result = await this.memoryTools.getContext(validatedArgs);
             return {
@@ -517,25 +567,35 @@ class MemvidMCPServer {
 
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
+    logger.info('Connecting MCP server to stdio transport...');
     await this.server.connect(transport);
-    logger.info('MemVid MCP Server running on stdio');
+    logger.info('MemVid MCP Server connected and running on stdio');
   }
 }
 
 // Start the server
 async function main() {
   try {
-    // Handle CLI commands first
-    const isCliCommand = await CLI.handleArgs(process.argv);
-    if (isCliCommand) {
-      // CLI command was executed, exit gracefully
-      process.exit(0);
+    // Detect if we're being run by an MCP client (like Cursor) or explicitly in server mode
+    const isMcpMode = !process.stdin.isTTY || process.argv.includes('--mcp') || process.argv.includes('--server');
+    
+    // In MCP mode, completely disable all non-JSON-RPC output to stdout
+    if (isMcpMode) {
+      // Redirect all console output to stderr to keep stdout clean for JSON-RPC
+      const originalConsoleLog = console.log;
+      const originalConsoleInfo = console.info;
+      const originalConsoleWarn = console.warn;
+      console.log = (...args) => console.error(...args);
+      console.info = (...args) => console.error(...args);  
+      console.warn = (...args) => console.error(...args);
     }
 
-    // Only show startup banner if we're not in MCP mode (when connected via stdio)
-    // In MCP mode, stdout should only contain JSON-RPC messages
-    const isMcpMode = process.stdin.isTTY === false || process.argv.includes('--mcp');
+    // Handle CLI commands first (only in non-MCP mode)
     if (!isMcpMode) {
+      const isCliCommand = await CLI.handleArgs(process.argv);
+      if (isCliCommand) {
+        process.exit(0);
+      }
       await CLI.showStartupBanner();
     }
 
@@ -546,11 +606,14 @@ async function main() {
   } catch (error) {
     logger.error('Failed to start server:', error);
     
-    // Provide helpful error message
-    console.error('\n❌ MemVid MCP Server failed to start');
-    console.error('🔧 Run the following for diagnostics:');
-    console.error('  npx @kcpatt27/memvid-mcp --setup');
-console.error('  npx @kcpatt27/memvid-mcp --install\n');
+    // Only show error details in non-MCP mode
+    const isMcpMode = !process.stdin.isTTY || process.argv.includes('--mcp') || process.argv.includes('--server');
+    if (!isMcpMode) {
+      console.error('\\n❌ MemVid MCP Server failed to start');
+      console.error('🔧 Run the following for diagnostics:');
+      console.error('  npx @kcpatt27/memvid-mcp --setup');
+      console.error('  npx @kcpatt27/memvid-mcp --install\\n');
+    }
     
     process.exit(1);
   }

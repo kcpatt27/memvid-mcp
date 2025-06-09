@@ -14,7 +14,7 @@ export class StorageManager {
     const __dirname = path.dirname(__filename);
     const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
     this.registryPath = path.join(serverDir, 'config', 'memory-banks.json');
-    this.memoryBanksDir = path.resolve(config.storage.memory_banks_dir);
+    this.memoryBanksDir = path.resolve(config.storage.memory_banks_dir as string);
   }
 
   /**

@@ -96,22 +96,20 @@ export function addMemvidMCPServer(): boolean {
     return false;
   }
   
-  const serverPath = resolveServerPath();
-  
   // Check if MemVid MCP server is already configured
   if (config.mcpServers.memvid) {
     console.log('MemVid MCP server is already configured in Cursor');
     
-    // Update the configuration with current path
+    // Update the configuration with npx command
     config.mcpServers.memvid = {
-      command: 'node',
-      args: [serverPath]
+      command: 'npx',
+      args: ['-y', '@kcpatt27/memvid-mcp', '--server']
     };
   } else {
     // Add new MemVid MCP server configuration
     config.mcpServers.memvid = {
-      command: 'node',
-      args: [serverPath]
+      command: 'npx',
+      args: ['-y', '@kcpatt27/memvid-mcp', '--server']
     };
     
     console.log('Adding MemVid MCP server configuration to Cursor');

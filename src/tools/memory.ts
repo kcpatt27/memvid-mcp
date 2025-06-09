@@ -19,15 +19,18 @@ import { DirectMemvidIntegration } from '../lib/memvid.js';
 import { StorageManager } from '../lib/storage.js';
 import { logger } from '../lib/logger.js';
 import { getSearchCache } from '../lib/search-cache.js';
-import { memoryBankValidator } from '../lib/memory-bank-validator.js';
+import { memoryBankValidator, MemoryBankValidator } from '../lib/memory-bank-validator.js';
 
 export class MemoryTools {
   private memvid: DirectMemvidIntegration;
   private storage: StorageManager;
+  private validator: MemoryBankValidator;
 
   constructor(private config: ServerConfig) {
     this.memvid = new DirectMemvidIntegration(config.memvid);
     this.storage = new StorageManager(config);
+    // Create validator with correct memory banks directory
+    this.validator = new MemoryBankValidator(config.storage.memory_banks_dir as string);
   }
 
   /**
@@ -37,10 +40,14 @@ export class MemoryTools {
     await this.storage.initialize();
     await this.memvid.initialize(); // Initialize the direct Python bridge
     
-    // Start health monitoring for production reliability
-    this.memvid.startHealthMonitoring();
-    
-    logger.info('Memory tools initialized with direct MemVid integration and health monitoring');
+    // Only start health monitoring in non-MCP mode to avoid polluting stdio 
+    const isMcpMode = !process.stdin.isTTY || process.argv.includes('--mcp');
+    if (!isMcpMode) {
+      this.memvid.startHealthMonitoring();
+      logger.info('Memory tools initialized with direct MemVid integration and health monitoring');
+    } else {
+      logger.info('Memory tools initialized with direct MemVid integration (health monitoring disabled for MCP mode)');
+    }
   }
 
   /**
@@ -58,7 +65,7 @@ export class MemoryTools {
       }
 
       // 🛡️ Production Reliability: Validate bank doesn't exist
-      const isReady = await memoryBankValidator.isMemoryBankReady(args.name, 'create');
+      const isReady = await this.validator.isMemoryBankReady(args.name, 'create');
       if (!isReady) {
         return {
           success: false,
@@ -140,20 +147,19 @@ export class MemoryTools {
     try {
       logger.info(`Enhanced search for: '${args.query}' with filters:`, args.filters);
 
-      // Check cache first for Phase 3c performance optimization
       const cache = getSearchCache();
       const cacheKey = {
         query: args.query,
-        memory_banks: args.memory_banks || undefined,
-        filters: args.filters || undefined,
-        sort_by: args.sort_by || undefined,
-        sort_order: args.sort_order || undefined,
-        top_k: args.top_k || undefined,
-        min_score: args.min_score || undefined
-      } as any; // Type assertion to avoid strict compatibility issues
+        memory_banks: args.memory_banks,
+        filters: args.filters,
+        sort_by: args.sort_by,
+        sort_order: args.sort_order,
+        top_k: args.top_k,
+        min_score: args.min_score
+      } as any;
 
       const cachedResults = await cache.getCachedResults(cacheKey);
-      if (cachedResults) {
+      if (cachedResults && cachedResults.results) {
         const searchTime = Date.now() - searchStart;
         logger.info(`Cache HIT: Search completed in ${searchTime}ms (${cachedResults.results.length} results)`);
         
@@ -165,19 +171,13 @@ export class MemoryTools {
         };
       }
 
-      // Cache miss - perform full search
-      logger.debug(`Cache MISS: Performing full search for: ${args.query}`);
-
-      // Determine which banks to search
-      let banksToSearch: string[];
+      let banksToSearch: string[] = [];
       if (args.memory_banks && args.memory_banks.length > 0) {
         banksToSearch = args.memory_banks;
       } else {
-        // Search all available banks, optionally filtered by tags
         const allBanks = await this.storage.listMemoryBanks();
         banksToSearch = allBanks
           .filter(bank => {
-            // Filter by tags if specified
             if (args.filters?.tags && args.filters.tags.length > 0) {
               return args.filters.tags.some(tag => bank.tags.includes(tag));
             }
@@ -195,13 +195,11 @@ export class MemoryTools {
         };
       }
 
-      // Search each bank with production reliability validation
       const allResults = [];
       const actualBanksSearched = [];
 
       for (const bankName of banksToSearch) {
-        // 🛡️ Production Reliability: Validate bank before searching
-        const isReady = await memoryBankValidator.isMemoryBankReady(bankName, 'search');
+        const isReady = await this.validator.isMemoryBankReady(bankName, 'search');
         if (!isReady) {
           logger.warn(`🚨 Memory bank '${bankName}' is not ready for search operations, skipping`);
           continue;
@@ -220,23 +218,19 @@ export class MemoryTools {
           args.min_score || this.config.search.min_score_threshold
         );
 
-        // Apply Phase 2 filtering
         const filteredResults = this.applySearchFilters(bankResults, args.filters as SearchFilters);
         allResults.push(...filteredResults);
         actualBanksSearched.push(bankName);
       }
 
-      // Apply Phase 2 sorting
       const sortedResults = this.applySorting(allResults, args.sort_by, args.sort_order);
 
-      // Limit results
       const topK = args.top_k || this.config.search.default_top_k;
       const finalResults = sortedResults.slice(0, topK);
 
       const searchTime = Date.now() - searchStart;
       logger.info(`Enhanced search found ${finalResults.length} results across ${actualBanksSearched.length} banks in ${searchTime}ms`);
 
-      // Cache the results for future queries
       await cache.cacheResults(cacheKey, finalResults, finalResults.length, actualBanksSearched);
 
       return {
@@ -406,69 +400,126 @@ export class MemoryTools {
    */
   async getContext(args: GetContextArgs): Promise<GetContextResponse> {
     try {
-      logger.info(`Getting context for: '${args.query}'`);
+      logger.info(`Getting context for query: "${args.query}"`);
+      logger.debug(`Context args:`, { 
+        query: args.query, 
+        memory_banks: args.memory_banks,
+        max_tokens: args.max_tokens,
+        include_metadata: args.include_metadata
+      });
 
-      // Search for relevant content
-      const searchResults = await this.searchMemory({
+      // Search for relevant content using the working search functionality
+      const searchArgs: SearchMemoryArgs = {
         query: args.query,
         memory_banks: args.memory_banks,
         top_k: Math.min(args.max_tokens ? Math.floor(args.max_tokens / 200) : 10, 20), // Estimate chunks needed
         min_score: this.config.search.min_score_threshold
+      };
+
+      logger.debug(`Calling searchMemory with args:`, searchArgs);
+      const searchResponse = await this.searchMemory(searchArgs);
+      logger.debug(`Search response:`, { 
+        resultsCount: searchResponse.results.length,
+        banksSearched: searchResponse.banks_searched
       });
 
-      if (searchResults.results.length === 0) {
+      if (searchResponse.results.length === 0) {
+        logger.info('No search results found for context query');
         return {
-          context: 'No relevant context found.',
+          context: 'No relevant context found for the query.',
           sources: [],
           total_tokens: 0
         };
       }
 
-      // Build context string
+      // Build context string and sources array
       let context = '';
       let tokenCount = 0;
       const maxTokens = args.max_tokens || this.config.search.max_context_tokens;
-      const sources = [];
+      const sources: Array<{
+        bank_name: string;
+        content_preview: string;
+        score: number;
+      }> = [];
 
-      for (const result of searchResults.results) {
-        const contentTokens = Math.ceil(result.content.length / 4); // Rough token estimation
+      logger.debug(`Building context with max tokens: ${maxTokens}`);
+
+      for (let i = 0; i < searchResponse.results.length; i++) {
+        const result = searchResponse.results[i];
+        if (!result) {
+          logger.warn(`Skipping result ${i + 1}: result is undefined`);
+          continue;
+        }
         
+        // Validate result properties first before trying to access them
+        if (!result.content || typeof result.content !== 'string') {
+          logger.warn(`Skipping result ${i + 1}: invalid content`, result);
+          continue;
+        }
+        if (!result.bank_name || typeof result.bank_name !== 'string') {
+          logger.warn(`Skipping result ${i + 1}: invalid bank_name`, result);
+          continue;
+        }
+
+        // Now that we've validated the properties, we can safely log them
+        logger.debug(`Processing result ${i + 1}/${searchResponse.results.length}:`, {
+          bank_name: result.bank_name,
+          content_length: result.content.length,
+          score: result.score
+        });
+
+        // Estimate tokens for this content (rough approximation: 1 token ≈ 4 characters)
+        const contentTokens = Math.ceil(result.content.length / 4);
+        logger.debug(`Content tokens estimated: ${contentTokens}, current total: ${tokenCount}`);
+        
+        // Check if adding this content would exceed token limit
         if (tokenCount + contentTokens > maxTokens) {
+          logger.debug(`Token limit would be exceeded, stopping at ${i + 1} results`);
           break;
         }
 
-        if (context) {
+        // Add separator between context sections (but not before the first one)
+        if (context.length > 0) {
           context += '\n\n---\n\n';
         }
 
-        if (args.include_metadata && Object.keys(result.metadata).length > 0) {
+        // Add metadata header if requested
+        if (args.include_metadata && result.metadata && Object.keys(result.metadata).length > 0) {
           context += `[Source: ${result.bank_name}`;
           if (result.metadata.source) {
             context += ` - ${result.metadata.source}`;
           }
-          context += `]\n`;
+          context += ']\n';
         }
 
+        // Add the actual content
         context += result.content;
         tokenCount += contentTokens;
 
-        sources.push({
-          bank_name: result.bank_name,
-          content_preview: result.content.substring(0, 100) + (result.content.length > 100 ? '...' : ''),
-          score: result.score
-        });
+        // Add to sources array
+        try {
+          sources.push({
+            bank_name: result.bank_name,
+            content_preview: result.content.substring(0, 100) + (result.content.length > 100 ? '...' : ''),
+            score: result.score || 0
+          });
+        } catch (sourceError) {
+          logger.warn(`Error adding source ${i + 1}:`, sourceError);
+        }
       }
 
-      logger.info(`Generated context with ${tokenCount} tokens from ${sources.length} sources`);
+      logger.info(`Successfully generated context: ${tokenCount} tokens from ${sources.length} sources`);
+      logger.debug(`Context preview:`, context.substring(0, 200) + '...');
 
       return {
-        context,
+        context: context.trim(),
         sources,
         total_tokens: tokenCount
       };
 
     } catch (error) {
-      logger.error(`Error getting context:`, error);
+      logger.error('Error in getContext method:', error);
+      logger.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return {
         context: 'Error retrieving context.',
         sources: [],
@@ -482,41 +533,23 @@ export class MemoryTools {
    */
   async listMemoryBanks(args: ListMemoryBanksArgs): Promise<ListMemoryBanksResponse> {
     try {
-      logger.info('🔍 Listing memory banks with validation');
+      logger.info('Listing memory banks from registry');
 
-      // 🛡️ Production Reliability: Get validated available banks
-      const availableBanks = await memoryBankValidator.getAvailableMemoryBanks();
-      logger.info(`Validator found ${availableBanks.length} available banks:`, availableBanks);
+      // Get all banks directly from the storage registry
+      const banks = await this.storage.listMemoryBanks();
 
-      logger.info('Getting banks from storage...');
-      const allBanks = await this.storage.listMemoryBanks();
-      
-      // Filter to only include validated banks
-      const banks = allBanks.filter(bank => availableBanks.includes(bank.name));
-      logger.info(`Filtered to ${banks.length} validated banks:`, banks.map(b => ({ name: b.name, path: b.file_path })));
-
-      // Optionally include detailed stats
+      // Optionally include detailed stats from the registry, avoiding live validation
       if (args.include_stats) {
-        logger.info('Including stats for each bank...');
-        for (let i = 0; i < banks.length; i++) {
-          const bank = banks[i];
-          if (bank) {
-            logger.info(`Getting stats for bank ${i + 1}/${banks.length}: ${bank.name} at ${bank.file_path}`);
-            try {
-              const stats = await this.memvid.getMemoryBankStats(bank.file_path);
-              logger.info(`Stats for ${bank.name}:`, stats);
-              if (stats) {
-                bank.size = stats.chunks;
-              }
-            } catch (statsError) {
-              logger.error(`Error getting stats for ${bank.name}:`, statsError);
-            }
-          }
+        for (const bank of banks) {
+          // The size in the registry should represent chunks, which is a key stat.
+          // No need for a live check which is expensive.
+          (bank as any).stats = {
+            chunks: bank.size,
+          };
         }
-        logger.info('Finished getting stats for all banks');
       }
 
-      logger.info(`Found ${banks.length} memory banks`);
+      logger.info(`Found ${banks.length} memory banks in registry`);
 
       return {
         banks,
@@ -540,4 +573,4 @@ export class MemoryTools {
     await this.memvid.cleanup(); // Clean up the Python bridge process
     logger.info('Memory tools cleanup completed');
   }
-} 
+}

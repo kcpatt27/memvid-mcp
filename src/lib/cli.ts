@@ -49,15 +49,16 @@ USAGE:
   npx @kcpatt27/memvid-mcp [command]
 
 COMMANDS:
-  --help, -h        Show this help message
-  --version, -v     Show version information
-  --setup, --check  Check system setup and dependencies
-  --install         Attempt automatic dependency installation
-  --config          Show current configuration
+  (no command)          Setup Cursor configuration
+  --help, -h           Show this help message
+  --version, -v        Show version information
+  --setup, --check     Check system setup and dependencies
+  --install            Attempt automatic dependency installation
+  --config             Show current configuration
 
 SETUP:
   For first-time setup, run:
-    npx @kcpatt27/memvid-mcp --setup
+    npx @kcpatt27/memvid-mcp
 
 MCP CLIENT CONFIGURATION:
   Add to your MCP client (Cursor, Claude Desktop):
@@ -66,7 +67,7 @@ MCP CLIENT CONFIGURATION:
     "mcpServers": {
       "memvid": {
         "command": "npx",
-        "args": ["-y", "@kcpatt27/memvid-mcp"]
+        "args": ["-y", "@kcpatt27/memvid-mcp", "--server"]
       }
     }
   }
@@ -179,7 +180,7 @@ Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp'
     console.log('    "mcpServers": {');
     console.log('      "memvid": {');
     console.log('        "command": "npx",');
-    console.log('        "args": ["-y", "@kcpatt27/memvid-mcp"],');
+    console.log('        "args": ["-y", "@kcpatt27/memvid-mcp", "--server"],');
     console.log('        "env": {');
     console.log('          "MEMORY_BANKS_DIR": "/custom/path",');
     console.log('          "PYTHON_EXECUTABLE": "python3"');

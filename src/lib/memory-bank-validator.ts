@@ -193,12 +193,31 @@ export class MemoryBankValidator {
    */
   async isMemoryBankReady(bankName: string, operationType: 'search' | 'create' | 'update' = 'search'): Promise<boolean> {
     try {
-      const validation = await this.getCachedValidation(bankName);
+      // Set validation options based on operation type
+      const validationOptions: ValidationOptions = {};
       
       switch (operationType) {
         case 'search':
-          // For search, we need MP4 and FAISS files
-          return validation.files.mp4.exists && validation.files.faiss.exists;
+          // For search, we only need the MP4 file
+          validationOptions.requireAllFiles = false;
+          break;
+        case 'create':
+          // For create, bank should not exist yet
+          validationOptions.requireAllFiles = false;
+          break;
+        case 'update':
+          // For update, bank should exist with all files
+          validationOptions.requireAllFiles = true;
+          break;
+      }
+      
+      const validation = await this.validateBank(bankName, validationOptions);
+      
+      switch (operationType) {
+        case 'search':
+          // For search, we just need the MP4 file. 
+          // The retriever might handle a missing index.
+          return validation.files.mp4.exists;
         case 'create':
           // For create, bank should not exist yet
           return !validation.exists;

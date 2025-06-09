@@ -1,26 +1,32 @@
 {
   "name": "@kcpatt27/memvid-mcp",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "MemVid MCP Server - AI Memory Bank Management with Enhanced Search",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/server.js",
   "bin": {
-    "memvid-mcp": "dist/setup.js"
+    "memvid-mcp": "dist/cli.js"
   },
   "files": [
     "dist/**/*",
-    "index.js",
+    "config/**/*",
+    "memory-banks/.gitkeep",
     "README.md",
+    "LICENSE",
     "package.json"
   ],
   "scripts": {
-    "build": "tsc && npm run copy-python",
+    "build": "tsc && npm run copy-python && npm run copy-config",
     "copy-python": "cp src/lib/memvid-bridge.py dist/lib/ || copy src\\lib\\memvid-bridge.py dist\\lib\\",
+    "copy-config": "mkdir -p dist/config && cp config/default.json dist/config/ || (mkdir dist\\config & copy config\\default.json dist\\config\\)",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "test": "node test-simple-tools.js",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "setup": "node dist/cli.js",
+    "check": "node dist/cli.js --check",
+    "install-deps": "node dist/cli.js --install"
   },
   "keywords": [
     "mcp",
@@ -30,7 +36,8 @@
     "search",
     "memvid",
     "cursor",
-    "claude"
+    "claude",
+    "npx"
   ],
   "author": "kcpatt27",
   "license": "MIT",
@@ -38,11 +45,17 @@
     "type": "git",
     "url": "git+https://github.com/kcpatt27/memvid-mcp.git"
   },
+  "homepage": "https://github.com/kcpatt27/memvid-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/kcpatt27/memvid-mcp/issues"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {

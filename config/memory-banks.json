@@ -3,9 +3,9 @@
     "direct-test": {
       "name": "direct-test",
       "description": "Auto-discovered memory bank",
-      "size": 151686,
+      "size": 151688,
       "created": "2025-06-08T12:26:20.692Z",
-      "last_updated": "2025-06-08T12:26:20.697Z",
+      "last_updated": "2025-06-09T20:33:28.604Z",
       "tags": [
         "auto-discovered"
       ],
@@ -25,9 +25,9 @@
     "minimal-test": {
       "name": "minimal-test",
       "description": "Auto-discovered memory bank",
-      "size": 42768,
+      "size": 42770,
       "created": "2025-06-08T12:26:20.704Z",
-      "last_updated": "2025-06-08T12:26:20.704Z",
+      "last_updated": "2025-06-09T21:40:42.847Z",
       "tags": [
         "auto-discovered"
       ],
@@ -76,8 +76,103 @@
         "benchmark"
       ],
       "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\search_benchmark_1749403584508.mp4"
+    },
+    "memvid-readme": {
+      "name": "memvid-readme",
+      "description": "A memory bank containing just the README.md for the MemVid MCP project.",
+      "size": 1,
+      "created": "2025-06-09T17:58:03.058Z",
+      "last_updated": "2025-06-09T17:58:03.058Z",
+      "tags": [
+        "readme",
+        "documentation"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\memvid-readme.mp4"
+    },
+    "memvid-core-files": {
+      "name": "memvid-core-files",
+      "description": "A memory bank containing key source files for the MemVid MCP project.",
+      "size": 1,
+      "created": "2025-06-09T17:58:32.797Z",
+      "last_updated": "2025-06-09T17:58:32.797Z",
+      "tags": [
+        "core-source",
+        "typescript",
+        "memvid"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\memvid-core-files.mp4"
+    },
+    "test-new-bank": {
+      "name": "test-new-bank",
+      "description": "A test memory bank for verification",
+      "size": 1,
+      "created": "2025-06-09T20:23:26.546Z",
+      "last_updated": "2025-06-09T20:23:26.546Z",
+      "tags": [
+        "test",
+        "verification"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\test-new-bank.mp4"
+    },
+    "bug-fix-success": {
+      "name": "bug-fix-success",
+      "description": "Documentation of the successful fix for get_context tool",
+      "size": 1,
+      "created": "2025-06-09T21:23:55.801Z",
+      "last_updated": "2025-06-09T21:23:55.801Z",
+      "tags": [],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\bug-fix-success.mp4"
+    },
+    "memvid-mcp-completion": {
+      "name": "memvid-mcp-completion",
+      "description": "Final documentation of the successful completion of MemVid MCP Server project - all 7 tools now working at 100%",
+      "size": 1,
+      "created": "2025-06-09T21:27:37.577Z",
+      "last_updated": "2025-06-09T21:27:37.577Z",
+      "tags": [],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\memvid-mcp-completion.mp4"
+    },
+    "clean-tech-docs": {
+      "name": "clean-tech-docs",
+      "description": "Clean technical documentation for AI context",
+      "size": 1,
+      "created": "2025-06-09T21:39:31.577Z",
+      "last_updated": "2025-06-09T21:39:31.577Z",
+      "tags": [
+        "documentation",
+        "technical",
+        "clean"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\clean-tech-docs.mp4"
+    },
+    "clean-memvid-docs": {
+      "name": "clean-memvid-docs",
+      "description": "Clean MemVid MCP Server documentation for AI context",
+      "size": 1,
+      "created": "2025-06-09T21:40:06.892Z",
+      "last_updated": "2025-06-09T21:40:06.892Z",
+      "tags": [
+        "documentation",
+        "clean",
+        "ai-ready"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\clean-memvid-docs.mp4"
+    },
+    "memvid-final-success": {
+      "name": "memvid-final-success",
+      "description": "Complete documentation of MemVid MCP Server 100% completion with clean AI context",
+      "size": 1,
+      "created": "2025-06-09T21:43:18.327Z",
+      "last_updated": "2025-06-09T21:43:18.327Z",
+      "tags": [
+        "completion",
+        "success",
+        "documentation",
+        "final"
+      ],
+      "file_path": "D:\\projects\\personal-projects\\memvid-mcp\\memory-banks\\memvid-final-success.mp4"
     }
   },
-  "last_updated": "2025-06-08T17:26:54.589Z",
+  "last_updated": "2025-06-09T21:43:18.327Z",
   "version": "1.0.0"
 }

@@ -3,245 +3,251 @@
 [![npm version](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp.svg)](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AI Memory Management using Video via MCP Protocol**
+🧠 **AI Memory Bank Management with Enhanced Search**
 
-Transform your files, documents, and data into searchable AI memory banks using MP4 video embeddings. Built for seamless integration with the MCP Protocol.
+Transform your files into searchable AI memory banks using MP4 videos and vector embeddings. Seamlessly integrates with Cursor and Claude Desktop via the Model Context Protocol (MCP).
 
-## ✨ Features
+## Features
 
-- 🎯 **Smart Memory Banks**: Convert any content (files, directories, URLs, text) into searchable AI memory
-- 🔍 **Advanced Search**: Enhanced filtering by file type, date, tags, and content length
-- ⚡ **High Performance**: Sub-second search with intelligent caching and concurrent processing
-- 🛠️ **Auto-Setup**: One-command integration with automatic configuration
+- 🎥 **MP4-based Memory Banks**: Store and search content using video embeddings
+- 🔍 **Enhanced Search**: Semantic search with filtering and sorting
+- 🚀 **Easy Setup**: One-command installation via npx
+- 🔧 **Auto-Configuration**: Automatically configures Cursor MCP settings
+- 📁 **Multiple Sources**: Files, directories, URLs, and text content
+- ⚡ **High Performance**: Sub-second search responses with caching
 
-## 🚀 Quick Start
+## Quick Start
 
-### Installation & Setup
+### 1. Install and Setup
 
 ```bash
-# Install and setup in one command
 npx @kcpatt27/memvid-mcp
-
-# Or install globally
-npm install -g @kcpatt27/memvid-mcp
 ```
 
-This will:
-- ✅ Detect your system and MCP client installation
-- ✅ Configure MCP integration automatically
-- ✅ Set up Python environment for MemVid
-- ✅ Create necessary directories and files
+This single command will:
+- Install the MemVid MCP Server
+- Check system requirements
+- Configure Cursor automatically
+- Set up Python dependencies
 
-### MCP Client Configuration
+### 2. Start Using
 
-Add this to your **Cursor**, **Claude Desktop**, or **Windsurf** settings:
+1. **Restart Cursor** (if currently running)
+2. **Open any project** in Cursor
+3. **Look for "memvid"** in the MCP Tools section
+4. **Create your first memory bank** using the `create_memory_bank` tool
+
+## Prerequisites
+
+- **Node.js 18+** - [Download here](https://nodejs.org/)
+- **Python 3.8+** - [Download here](https://python.org/)
+- **Cursor** - [Download here](https://cursor.sh/)
+
+The setup command will help you install missing dependencies.
+
+## MCP Client Configuration
+
+For Cursor, Claude Desktop, or other MCP clients:
 
 ```json
 {
   "mcpServers": {
     "memvid": {
       "command": "npx",
-      "args": ["-y", "@kcpatt27/memvid-mcp"]
+      "args": ["-y", "@kcpatt27/memvid-mcp", "--server"]
     }
   }
 }
 ```
 
-**Manual setup commands** (if auto-setup fails):
-```bash
-# Check current configuration
-npx @kcpatt27/memvid-mcp --check
+### Custom Configuration
 
-# View detailed diagnostics
-npx @kcpatt27/memvid-mcp --setup
+```json
+{
+  "mcpServers": {
+    "memvid": {
+      "command": "npx",
+      "args": ["-y", "@kcpatt27/memvid-mcp", "--server"],
+      "env": {
+        "MEMORY_BANKS_DIR": "/custom/path/to/banks",
+        "PYTHON_EXECUTABLE": "python3"
+      }
+    }
+  }
+}
 ```
 
-## 🎯 Usage
+## Available Tools
 
-Once configured, restart your MCP client and use these tools:
+### 🏦 create_memory_bank
+Create memory banks from various sources:
+- **Files**: Text, code, documents
+- **Directories**: Entire project folders
+- **URLs**: Web content
+- **Text**: Direct text input
 
-### Create Memory Bank
-```typescript
-// Convert your project files into searchable memory
+### 🔍 search_memory
+Advanced search with:
+- **Semantic matching**
+- **File type filtering**
+- **Content length filters**
+- **Date range filtering**
+- **Custom sorting**
+
+### 📋 list_memory_banks
+List all available memory banks with metadata
+
+### ➕ add_to_memory
+Add new content to existing memory banks
+
+### 🎯 get_context
+Get formatted context for AI conversations
+
+### 🏥 health_check & system_diagnostics
+Monitor system health and performance
+
+## Commands
+
+```bash
+# Setup (default)
+npx @kcpatt27/memvid-mcp
+
+# Check system status
+npx @kcpatt27/memvid-mcp --check
+
+# Auto-install dependencies
+npx @kcpatt27/memvid-mcp --install
+
+# Show configuration
+npx @kcpatt27/memvid-mcp --config
+
+# Show help
+npx @kcpatt27/memvid-mcp --help
+
+# Show version
+npx @kcpatt27/memvid-mcp --version
+```
+
+## Usage Examples
+
+### Create a Memory Bank
+
+Use the `create_memory_bank` tool in Cursor:
+
+```json
 {
   "name": "my-project",
-  "description": "My project documentation", 
+  "description": "My project documentation and code",
   "sources": [
     {
       "type": "directory",
       "path": "./src",
       "options": {
-        "file_types": ["ts", "js", "md"],
-        "chunk_size": 512
+        "file_types": ["ts", "js", "md"]
       }
+    },
+    {
+      "type": "file", 
+      "path": "./README.md"
     }
-  ]
+  ],
+  "tags": ["project", "documentation"]
 }
 ```
 
 ### Search Memory Banks
-```typescript
-// Find information across all memory banks
-{
-  "query": "authentication logic",
-  "filters": {
-    "file_types": ["ts", "js"], 
-    "content_length": {"min": 100}
-  },
-  "sort_by": "relevance",
-  "top_k": 10
-}
-```
 
-### Supported Source Types
-```typescript
-// File source
-{ "type": "file", "path": "./document.pdf" }
+Use the `search_memory` tool:
 
-// Directory with filtering
-{ 
-  "type": "directory", 
-  "path": "./docs",
-  "options": { "file_types": ["md", "txt"] }
-}
-
-// URL source
-{ "type": "url", "path": "https://api-docs.example.com" }
-
-// Direct text
-{ "type": "text", "path": "Important notes to remember..." }
-```
-
-## ⚙️ Configuration
-
-### Environment Variables
-```bash
-# Memory banks storage location
-MEMORY_BANKS_DIR=./memory-banks
-
-# Python executable (auto-detected)
-PYTHON_EXECUTABLE=python
-
-# Performance tuning
-MAX_CONCURRENT_OPERATIONS=5
-CACHE_SIZE=100
-LOG_LEVEL=info
-```
-
-### Advanced MCP Configuration
 ```json
 {
-  "mcpServers": {
-    "memvid": {
-      "command": "npx",
-      "args": ["-y", "@kcpatt27/memvid-mcp"],
-      "env": {
-        "MEMORY_BANKS_DIR": "./custom-banks",
-        "LOG_LEVEL": "debug"
-      }
+  "query": "authentication and security",
+  "memory_banks": ["my-project"],
+  "top_k": 10,
+  "filters": {
+    "file_types": ["ts", "js"],
+    "content_length": {
+      "min": 100
     }
-  }
+  },
+  "sort_by": "relevance"
 }
 ```
 
-## 📊 Performance
+## Troubleshooting
 
-- **Memory Bank Creation**: 3-5 seconds (typical)
-- **Search Response**: <500ms with caching
-- **Memory Usage**: <50MB per memory bank
-- **Concurrent Operations**: 5+ simultaneous users
+### Setup Issues
 
-## 🔍 Troubleshooting
+```bash
+# Check what's wrong
+npx @kcpatt27/memvid-mcp --check
+
+# Try auto-fix
+npx @kcpatt27/memvid-mcp --install
+```
 
 ### Common Issues
 
-**Python Installation Error:**
-```bash
-# Install Python 3.8+ from https://python.org
-npx @kcpatt27/memvid-mcp --check
-```
+1. **Python not found**: Install Python 3.8+ from python.org
+2. **MemVid not installed**: Run `pip install memvid`
+3. **Cursor not detected**: Ensure Cursor is installed and running
+4. **Permission errors**: Run with appropriate permissions
 
-**Memory Bank Creation Timeout:**
-```bash
-# Check system resources and file sizes
-# Large files (>100MB) may take longer to process
-```
-
-**Search Returns No Results:**
-```bash
-# Verify memory bank was created successfully
-npx @kcpatt27/memvid-mcp --check
-```
-
-### Debug Mode
-```bash
-# Enable detailed logging
-DEBUG=memvid:* npx @kcpatt27/memvid-mcp
-```
-
-## 🛠️ Advanced Usage
-
-### Programmatic API
-```javascript
-import { startServer, setup } from '@kcpatt27/memvid-mcp';
-
-// Start server programmatically
-const server = startServer({
-  env: { MEMORY_BANKS_DIR: './custom-banks' }
-});
-
-// Run setup check
-const isReady = await setup();
-```
-
-### Search Filtering
-```typescript
-{
-  "filters": {
-    "file_types": ["md", "txt"],           // File extensions
-    "date_range": {                        // Date filtering
-      "start": "2024-01-01", 
-      "end": "2024-12-31"
-    },
-    "tags": ["documentation", "api"],      // Memory bank tags
-    "content_length": {                    // Content size
-      "min": 100,
-      "max": 5000
-    }
-  },
-  "sort_by": "relevance",                  // relevance|date|file_size|content_length
-  "sort_order": "desc"                     // asc|desc
-}
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+### Manual Python Setup
 
 ```bash
-git clone https://github.com/kcpatt27/memvid-mcp
+# Install MemVid package
+pip install memvid
+
+# Or with pip3
+pip3 install memvid
+```
+
+## Development
+
+```bash
+# Clone the repository
+git clone https://github.com/kcpatt27/memvid-mcp.git
 cd memvid-mcp
+
+# Install dependencies
 npm install
+
+# Build
 npm run build
-npm test
+
+# Test locally
+node dist/cli.js --check
 ```
 
-## 📄 License
+## Environment Variables
 
-MIT License - see [LICENSE](LICENSE) file for details.
+- `MEMORY_BANKS_DIR`: Custom memory banks directory
+- `PYTHON_EXECUTABLE`: Custom Python executable path
+- `MEMVID_CONFIG_PATH`: Custom configuration file path
+- `LOG_LEVEL`: Logging level (info, warn, error, debug)
 
-## 🙏 Acknowledgments
+## Performance
 
-- [MemVid](https://github.com/nishantk1991/memvid) - Core video embedding technology
-- [Model Context Protocol](https://modelcontextprotocol.io/) - MCP standard
-- [Cursor](https://cursor.sh/) - AI-powered development environment
+- **Memory Bank Creation**: ~3-5 seconds
+- **Search Response**: <500ms (cached)
+- **Memory Usage**: <200MB baseline
+- **Concurrent Users**: 5+ supported
 
-## 📞 Support
+## License
 
-- 🐛 [Report Issues](https://github.com/kcpatt27/memvid-mcp/issues)
-- 💬 [Discussions](https://github.com/kcpatt27/memvid-mcp/discussions)
-- 📧 Email support: coming soon
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Support
+
+- 📖 **Documentation**: [GitHub Wiki](https://github.com/kcpatt27/memvid-mcp/wiki)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/kcpatt27/memvid-mcp/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/kcpatt27/memvid-mcp/discussions)
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-**Made with ❤️ for the AI development community**
+Made with ❤️ for the AI community

@@ -443,13 +443,27 @@ export class DirectMemvidIntegration {
    * Standardize search results
    */
   private parseSearchResults(results: any[], bankName: string): SearchResult[] {
-    return (results || []).map(r => ({
-      bank_name: bankName,
-      source: r.source || 'Unknown',
-      content: r.content,
-      score: r.score,
-      metadata: r.metadata || {}
-    }));
+    return (results || []).map((r, index) => {
+      // Handle direct string results from MemVid retriever
+      if (typeof r === 'string') {
+        return {
+          bank_name: bankName,
+          source: 'MemVid',
+          content: r,
+          score: 1.0 - (index * 0.1), // Assign descending scores based on order
+          metadata: {}
+        };
+      }
+      
+      // Handle object results (legacy or future format)
+      return {
+        bank_name: bankName,
+        source: r.source || 'Unknown',
+        content: r.content || r,
+        score: r.score || (1.0 - (index * 0.1)),
+        metadata: r.metadata || {}
+      };
+    });
   }
 
   /**
