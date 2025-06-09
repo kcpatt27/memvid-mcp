@@ -250,14 +250,13 @@ npm test
 
 ## 📄 **License**
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE file](https://github.com/kcpatt27/memvid-mcp-server) for details.
 
 ## 🙋 **Support**
 
-- **Issues**: [GitHub Issues](https://github.com/kcpatt27/memvid-mcp-server/issues)
-- **Documentation**: [MCP Protocol Guide](https://modelcontextprotocol.io/)
 - **MemVid**: [MemVid Documentation](https://github.com/kingjulio8238/memvid)
+- **Issues**: [GitHub Issues](https://github.com/kcpatt27/memvid-mcp-server/issues)
+- **Contribution**: [Want to make some changes?](https://github.com/kcpatt27/memvid-mcp-server/CONTRIBUTING.md)
+- **MCP Documentation**: [MCP Protocol Guide](https://modelcontextprotocol.io/)
 
 ---
-
-**Transform your AI conversations with persistent, searchable memory banks! 🧠✨** 
