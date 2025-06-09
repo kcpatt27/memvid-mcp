@@ -45,9 +45,6 @@ memory-banks/
 temp/
 debug/
 
-# MemVid development installation
-memvid/
-
 # OS generated files
 .DS_Store
 .DS_Store?

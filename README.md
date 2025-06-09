@@ -248,13 +248,19 @@ npm test
   - Production reliability features
   - Performance optimization and caching
 
+## 🙏 **Acknowledgments**
+
+This project builds upon the excellent [MemVid](https://github.com/Olow304/memvid) library by **Olow304** and contributors (6.5k+ stars). MemVid provides the innovative video-based AI memory storage that powers this MCP server.
+
+Special thanks to the MemVid community for creating such a powerful and elegant solution for AI memory management.
+
 ## 📄 **License**
 
 MIT License - see [LICENSE file](https://github.com/kcpatt27/memvid-mcp-server) for details.
 
 ## 🙋 **Support**
 
-- **MemVid**: [MemVid Documentation](https://github.com/kingjulio8238/memvid)
+- **MemVid**: [MemVid Documentation](https://github.com/Olow304/memvid)
 - **Issues**: [GitHub Issues](https://github.com/kcpatt27/memvid-mcp-server/issues)
 - **Contribution**: [Want to make some changes?](https://github.com/kcpatt27/memvid-mcp-server/CONTRIBUTING.md)
 - **MCP Documentation**: [MCP Protocol Guide](https://modelcontextprotocol.io/)
