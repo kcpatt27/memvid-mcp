@@ -273,21 +273,21 @@ export class DirectMemvidIntegration {
   ): Promise<{ success: boolean; chunksCreated: number; error?: string }> {
     return await this.errorRecovery.executeWithRecovery(
       async () => {
-        logger.info(`Creating memory bank '${name}' from ${sources.length} sources`);
+      logger.info(`Creating memory bank '${name}' from ${sources.length} sources`);
 
-        const result = await this.sendRequest('encode', {
-          sources,
-          output_path: outputPath,
-          chunk_size: this.config.chunk_size,
-          overlap: this.config.overlap,
-          embedding_model: this.config.embedding_model
-        });
+      const result = await this.sendRequest('encode', {
+        sources,
+        output_path: outputPath,
+        chunk_size: this.config.chunk_size,
+        overlap: this.config.overlap,
+        embedding_model: this.config.embedding_model
+      });
 
-        return {
-          success: result.success,
-          chunksCreated: result.chunks_created || 0,
-          error: result.success ? undefined : result.error
-        };
+      return {
+        success: result.success,
+        chunksCreated: result.chunks_created || 0,
+        error: result.success ? undefined : result.error
+      };
       },
       'createMemoryBank',
       { name, sourcesCount: sources.length, outputPath }
@@ -312,28 +312,28 @@ export class DirectMemvidIntegration {
   ): Promise<SearchResult[]> {
     return await this.errorRecovery.executeWithRecovery(
       async () => {
-        logger.info(`Searching memory bank at '${bankPath}' for query: '${query}'`);
+      logger.info(`Searching memory bank at '${bankPath}' for query: '${query}'`);
 
-        // Derive video_path and index_path from bankPath
-        // bankPath could be either the .mp4 file or the base name
-        const basePath = bankPath.replace(/\.(mp4|json|faiss)$/, '');
-        const videoPath = `${basePath}.mp4`;
-        const indexPath = `${basePath}.json`;
+      // Derive video_path and index_path from bankPath
+      // bankPath could be either the .mp4 file or the base name
+      const basePath = bankPath.replace(/\.(mp4|json|faiss)$/, '');
+      const videoPath = `${basePath}.mp4`;
+      const indexPath = `${basePath}.json`;
 
-        const result = await this.sendRequest('search', {
-          video_path: videoPath,
-          index_path: indexPath,
-          query,
-          top_k: topK,
-          min_score: minScore
-        });
+      const result = await this.sendRequest('search', {
+        video_path: videoPath,
+        index_path: indexPath,
+        query,
+        top_k: topK,
+        min_score: minScore
+      });
 
-        if (result.success) {
-          return this.parseSearchResults(result.results || [], path.basename(basePath));
-        } else {
-          logger.error('Search failed:', result.error);
-          return [];
-        }
+      if (result.success) {
+        return this.parseSearchResults(result.results || [], path.basename(basePath));
+      } else {
+        logger.error('Search failed:', result.error);
+        return [];
+      }
       },
       'searchMemoryBank',
       { bankPath, query, topK, minScore }
