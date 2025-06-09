@@ -115,23 +115,23 @@ export class HealthTools {
             }
           };
         } catch (error) {
-          return {
-            status: 'unknown',
-            timestamp: new Date().toISOString(),
-            uptime: Date.now() - this.startTime,
-            checks: {
-              pythonBridge: false,
-              memoryBanks: false,
-              systemResources: false
-            },
+        return {
+          status: 'unknown',
+          timestamp: new Date().toISOString(),
+          uptime: Date.now() - this.startTime,
+          checks: {
+            pythonBridge: false,
+            memoryBanks: false,
+            systemResources: false
+          },
             errors: [`Immediate health check failed: ${error instanceof Error ? error.message : String(error)}`],
-            warnings: [],
-            errorRecoveryStatus: {
-              circuitBreakerState: errorRecoveryStatus.state,
-              failureCount: errorRecoveryStatus.failureCount,
-              lastFailureTime: errorRecoveryStatus.lastFailureTime
-            }
-          };
+          warnings: [],
+          errorRecoveryStatus: {
+            circuitBreakerState: errorRecoveryStatus.state,
+            failureCount: errorRecoveryStatus.failureCount,
+            lastFailureTime: errorRecoveryStatus.lastFailureTime
+          }
+        };
         }
       }
 
