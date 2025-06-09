@@ -1,6 +1,6 @@
 {
   "name": "@kcpatt27/memvid-mcp-server",
-  "version": "1.0.1-beta.0",
+  "version": "1.0.1",
   "description": "MemVid MCP Server - AI Memory Bank Management with Enhanced Search",
   "type": "module",
   "main": "dist/server.js",
