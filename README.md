@@ -1,20 +1,18 @@
-# 🎥 MemVid MCP Server
+# 🎥 MemVid MCP
 
-[![npm version](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp-server.svg)](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp-server)
+[![npm version](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp.svg)](https://badge.fury.io/js/@kcpatt27%2Fmemvid-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Intelligent AI Memory Bank Management for Claude via MCP Protocol**
+**AI Memory Management using Video for Cursor, Claude, Windsurf, etc. via MCP Protocol**
 
-Transform your files, documents, and data into searchable AI memory banks using MP4 video embeddings. Built for seamless integration with Cursor IDE and Claude AI.
+Transform your files, documents, and data into searchable AI memory banks using MP4 video embeddings. Built for seamless integration with the MCP Protocol.
 
 ## ✨ Features
 
 - 🎯 **Smart Memory Banks**: Convert any content (files, directories, URLs, text) into searchable AI memory
 - 🔍 **Advanced Search**: Enhanced filtering by file type, date, tags, and content length
 - ⚡ **High Performance**: Sub-second search with intelligent caching and concurrent processing
-- 🛠️ **Auto-Setup**: One-command Cursor IDE integration with automatic configuration
-- 🎨 **Production Ready**: Enterprise-grade error handling, health monitoring, and reliability
-- 📱 **Modern Architecture**: TypeScript, MCP Protocol, and modular design
+- 🛠️ **Auto-Setup**: One-command integration with automatic configuration
 
 ## 🚀 Quick Start
 
@@ -22,11 +20,11 @@ Transform your files, documents, and data into searchable AI memory banks using 
 
 ```bash
 # Install and setup in one command
-npx @kcpatt27/memvid-mcp-server
+npx @kcpatt27/memvid-mcp
 
 # Or install globally
-npm install -g @kcpatt27/memvid-mcp-server
-memvid-mcp-server
+npm install -g @kcpatt27/memvid-mcp
+memvid-mcp
 ```
 
 This will:
@@ -41,15 +39,15 @@ If automatic setup doesn't work, you can configure manually:
 
 ```bash
 # Check current configuration
-npx @kcpatt27/memvid-mcp-server --check
+npx @kcpatt27/memvid-mcp --check
 
 # Run server directly
-npx @kcpatt27/memvid-mcp-server --server
+npx @kcpatt27/memvid-mcp --server
 ```
 
-## 🎯 Usage in Cursor/Claude
+## 🎯 Usage in Cursor/Claude/Windsurf
 
-Once installed, restart Cursor and you'll have access to these tools:
+Once installed, restart and you'll have access to these tools:
 
 ### 1. Create Memory Bank
 
@@ -115,7 +113,7 @@ If auto-setup fails, add this to your Cursor `settings.json`:
   "mcpServers": {
     "memvid": {
       "command": "npx",
-      "args": ["@kcpatt27/memvid-mcp-server", "--server"]
+      "args": ["@kcpatt27/memvid-mcp", "--server"]
     }
   }
 }
@@ -133,7 +131,7 @@ If auto-setup fails, add this to your Cursor `settings.json`:
 ### Programmatic API
 
 ```javascript
-import { startServer, setup } from '@kcpatt27/memvid-mcp-server';
+import { startServer, setup } from '@kcpatt27/memvid-mcp';
 
 // Start server programmatically
 const serverProcess = startServer({
@@ -205,7 +203,7 @@ const success = await setup();
 **Setup fails with Python error:**
 ```bash
 # Install Python 3.8+ from https://python.org
-# Then run: npx @kcpatt27/memvid-mcp-server --check
+# Then run: npx @kcpatt27/memvid-mcp --check
 ```
 
 **Memory bank creation times out:**
@@ -224,17 +222,17 @@ const success = await setup();
 
 ```bash
 # Check system health
-npx @kcpatt27/memvid-mcp-server --check
+npx @kcpatt27/memvid-mcp --check
 
 # View detailed diagnostics
-npx @kcpatt27/memvid-mcp-server --server --verbose
+npx @kcpatt27/memvid-mcp --server --verbose
 ```
 
 ### Debug Mode
 
 Set environment variable for detailed logging:
 ```bash
-DEBUG=memvid:* npx @kcpatt27/memvid-mcp-server --server
+DEBUG=memvid:* npx @kcpatt27/memvid-mcp --server
 ```
 
 ## 🤝 Contributing
@@ -244,8 +242,8 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Development Setup
 
 ```bash
-git clone https://github.com/kcpatt27/memvid-mcp-server
-cd memvid-mcp-server
+git clone https://github.com/kcpatt27/memvid-mcp
+cd memvid-mcp
 npm install
 npm run build
 npm test
@@ -263,8 +261,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📞 Support
 
-- 🐛 [Report Issues](https://github.com/kcpatt27/memvid-mcp-server/issues)
-- 💬 [Discussions](https://github.com/kcpatt27/memvid-mcp-server/discussions)
+- 🐛 [Report Issues](https://github.com/kcpatt27/memvid-mcp/issues)
+- 💬 [Discussions](https://github.com/kcpatt27/memvid-mcp/discussions)
 - 📧 Email support: coming soon
 
 ---
