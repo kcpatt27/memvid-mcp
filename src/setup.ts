@@ -22,12 +22,12 @@ function printHeader() {
 function printHelp() {
   printHeader();
   console.log('Usage:');
-  console.log('  npx @kcpatt27/memvid-mcp-server          Setup Cursor configuration');
-  console.log('  npx @kcpatt27/memvid-mcp-server --help   Show this help message');
-  console.log('  npx @kcpatt27/memvid-mcp-server --server Run the server directly');
-  console.log('  npx @kcpatt27/memvid-mcp-server --check  Check current configuration');
-  console.log('  npx @kcpatt27/memvid-mcp-server --remove Remove from Cursor configuration');
-  console.log('\nFor more information, visit: https://github.com/kcpatt27/memvid-mcp-server');
+  console.log('  npx @kcpatt27/memvid-mcp          Setup Cursor configuration');
+console.log('  npx @kcpatt27/memvid-mcp --help   Show this help message');
+console.log('  npx @kcpatt27/memvid-mcp --server Run the server directly');
+console.log('  npx @kcpatt27/memvid-mcp --check  Check current configuration');
+console.log('  npx @kcpatt27/memvid-mcp --remove Remove from Cursor configuration');
+console.log('\nFor more information, visit: https://github.com/kcpatt27/memvid-mcp');
 }
 
 function checkEnvironment(): { success: boolean; issues: string[] } {

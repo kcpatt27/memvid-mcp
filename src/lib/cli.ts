@@ -46,7 +46,7 @@ export class CLI {
 🧠 MemVid MCP Server - AI Memory Bank Management
 
 USAGE:
-  npx @kcpatt27/memvid-mcp-server [command]
+  npx @kcpatt27/memvid-mcp [command]
 
 COMMANDS:
   --help, -h        Show this help message
@@ -57,7 +57,7 @@ COMMANDS:
 
 SETUP:
   For first-time setup, run:
-    npx @kcpatt27/memvid-mcp-server --setup
+    npx @kcpatt27/memvid-mcp --setup
 
 MCP CLIENT CONFIGURATION:
   Add to your MCP client (Cursor, Claude Desktop):
@@ -66,14 +66,14 @@ MCP CLIENT CONFIGURATION:
     "mcpServers": {
       "memvid": {
         "command": "npx",
-        "args": ["-y", "@kcpatt27/memvid-mcp-server"]
+        "args": ["-y", "@kcpatt27/memvid-mcp"]
       }
     }
   }
 
 DOCUMENTATION:
-  📖 Full documentation: https://github.com/kcpatt27/memvid-mcp-server
-  🐛 Issues: https://github.com/kcpatt27/memvid-mcp-server/issues
+  📖 Full documentation: https://github.com/kcpatt27/memvid-mcp
+🐛 Issues: https://github.com/kcpatt27/memvid-mcp/issues
 `);
   }
 
@@ -91,7 +91,7 @@ Dependencies:
   - Platform: ${process.platform}
   - Architecture: ${process.arch}
 
-Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp-server'}
+Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp'}
 `);
   }
 
@@ -107,7 +107,7 @@ Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp-
       
       if (!status.isReady) {
         console.log('\n🔧 To fix issues automatically, run:');
-        console.log('  npx @kcpatt27/memvid-mcp-server --install\n');
+        console.log('  npx @kcpatt27/memvid-mcp --install\n');
       }
     } catch (error) {
       console.error('❌ Setup check failed:', error);
@@ -179,7 +179,7 @@ Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp-
     console.log('    "mcpServers": {');
     console.log('      "memvid": {');
     console.log('        "command": "npx",');
-    console.log('        "args": ["-y", "@kcpatt27/memvid-mcp-server"],');
+    console.log('        "args": ["-y", "@kcpatt27/memvid-mcp"],');
     console.log('        "env": {');
     console.log('          "MEMORY_BANKS_DIR": "/custom/path",');
     console.log('          "PYTHON_EXECUTABLE": "python3"');

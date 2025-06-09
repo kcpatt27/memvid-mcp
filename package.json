@@ -1,11 +1,11 @@
 {
   "name": "@kcpatt27/memvid-mcp",
-  "version": "1.1.11",
+  "version": "1.1.13",
   "description": "MemVid MCP Server - AI Memory Bank Management with Enhanced Search",
   "type": "module",
   "main": "index.js",
   "bin": {
-    "memvid-mcp-server": "./dist/setup.js"
+    "memvid-mcp": "dist/setup.js"
   },
   "files": [
     "dist/**/*",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kcpatt27/memvid-mcp-server"
+    "url": "git+https://github.com/kcpatt27/memvid-mcp.git"
   },
   "engines": {
     "node": ">=18.0.0"

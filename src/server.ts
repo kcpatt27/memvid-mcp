@@ -549,8 +549,8 @@ async function main() {
     // Provide helpful error message
     console.error('\n❌ MemVid MCP Server failed to start');
     console.error('🔧 Run the following for diagnostics:');
-    console.error('  npx @kcpatt27/memvid-mcp-server --setup');
-    console.error('  npx @kcpatt27/memvid-mcp-server --install\n');
+    console.error('  npx @kcpatt27/memvid-mcp --setup');
+console.error('  npx @kcpatt27/memvid-mcp --install\n');
     
     process.exit(1);
   }
@@ -559,7 +559,7 @@ async function main() {
 main().catch((error) => {
   logger.error('Unhandled error:', error);
   console.error('\n💥 Unexpected error occurred');
-  console.error('🐛 Please report this issue: https://github.com/kcpatt27/memvid-mcp-server/issues');
+  console.error('🐛 Please report this issue: https://github.com/kcpatt27/memvid-mcp/issues');
   console.error(`Error: ${error.message}`);
   process.exit(1);
 }); 

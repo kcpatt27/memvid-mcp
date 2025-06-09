@@ -254,7 +254,7 @@ except Exception as e:
     }
 
     status.recommendations.push('');
-    status.recommendations.push('📖 Complete setup guide: https://github.com/kcpatt27/memvid-mcp-server#setup');
+    status.recommendations.push('📖 Complete setup guide: https://github.com/kcpatt27/memvid-mcp#setup');
   }
 
   /**
