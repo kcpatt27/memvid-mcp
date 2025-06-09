@@ -119,18 +119,21 @@ export class DirectMemvidIntegration {
     try {
       logger.info('Initializing DirectMemvidIntegration...');
 
+      // Get the server's project directory
+      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+      
       // Get Python executable path
       const pythonPath = process.platform === 'win32' 
-        ? path.join(process.cwd(), 'memvid-env', 'Scripts', 'python.exe')
-        : path.join(process.cwd(), 'memvid-env', 'bin', 'python');
+        ? path.join(serverDir, 'memvid-env', 'Scripts', 'python.exe')
+        : path.join(serverDir, 'memvid-env', 'bin', 'python');
 
       // Get bridge script path
-      const bridgePath = path.join(process.cwd(), 'src', 'lib', 'memvid-bridge.py');
+      const bridgePath = path.join(serverDir, 'src', 'lib', 'memvid-bridge.py');
 
       // Spawn Python bridge process
       this.pythonProcess = spawn(pythonPath, [bridgePath], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: path.join(process.cwd(), 'memvid'), // Run from memvid directory
+        cwd: path.join(serverDir, 'memvid'), // Run from memvid directory
         env: { ...process.env, PYTHONUNBUFFERED: '1' }
       });
 

@@ -8,7 +8,9 @@ export class StorageManager {
   private memoryBanksDir: string;
 
   constructor(private config: ServerConfig) {
-    this.registryPath = path.join(process.cwd(), 'config', 'memory-banks.json');
+    // Get the server's project directory by going up from dist/
+    const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+    this.registryPath = path.join(serverDir, 'config', 'memory-banks.json');
     this.memoryBanksDir = path.resolve(config.storage.memory_banks_dir);
   }
 
@@ -17,16 +19,21 @@ export class StorageManager {
    */
   async initialize(): Promise<void> {
     try {
+      // Get the server's project directory
+      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+      
       // Create memory banks directory
       await fs.mkdir(this.memoryBanksDir, { recursive: true });
       
       // Create logs directory for later winston integration
-      await fs.mkdir(path.join(process.cwd(), 'logs'), { recursive: true });
+      await fs.mkdir(path.join(serverDir, 'logs'), { recursive: true });
       
       // Create temp directory
-      await fs.mkdir(path.join(process.cwd(), 'temp'), { recursive: true });
+      await fs.mkdir(path.join(serverDir, 'temp'), { recursive: true });
       
       logger.info('Storage directories initialized');
+      logger.info(`Memory banks directory: ${this.memoryBanksDir}`);
+      logger.info(`Registry path: ${this.registryPath}`);
     } catch (error) {
       logger.error('Failed to initialize storage directories:', error);
       throw error;
@@ -198,7 +205,8 @@ export class StorageManager {
     }
 
     try {
-      const tempDir = path.join(process.cwd(), 'temp');
+      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+      const tempDir = path.join(serverDir, 'temp');
       const files = await fs.readdir(tempDir);
       
       for (const file of files) {

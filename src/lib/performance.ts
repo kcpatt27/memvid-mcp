@@ -42,7 +42,9 @@ export class PerformanceProfiler {
     this.config = config;
     this.memvid = new MemvidIntegration(config.memvid);
     this.storage = new StorageManager(config);
-    this.reportPath = path.join(process.cwd(), 'performance-reports');
+    // Get the server's project directory
+    const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+    this.reportPath = path.join(serverDir, 'performance-reports');
   }
 
   /**
@@ -113,7 +115,8 @@ export class PerformanceProfiler {
     ];
 
     for (const testCase of testCases) {
-      const tempFile = path.join(process.cwd(), 'temp', `benchmark_${testCase.name}.txt`);
+      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+      const tempFile = path.join(serverDir, 'temp', `benchmark_${testCase.name}.txt`);
       
       try {
         // Create test file
@@ -170,7 +173,8 @@ export class PerformanceProfiler {
     // Create a test memory bank for searching
     const testBankName = `search_benchmark_${Date.now()}`;
     const testContent = 'Machine learning artificial intelligence deep learning neural networks computer vision natural language processing data science statistics algorithms optimization'.repeat(50);
-    const testFile = path.join(process.cwd(), 'temp', 'search_benchmark.txt');
+    const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+    const testFile = path.join(serverDir, 'temp', 'search_benchmark.txt');
     
     try {
       await fs.mkdir(path.dirname(testFile), { recursive: true });

@@ -265,7 +265,9 @@ export class SystemHealthMonitor extends EventEmitter {
     const memoryPercentage = (usedMemory / totalMemory) * 100;
 
     // Disk usage for current directory
-    const diskUsage = await this.getDiskUsage(process.cwd());
+          // Get the server's project directory
+      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
+      const diskUsage = await this.getDiskUsage(serverDir);
 
     // Check thresholds
     if (memoryPercentage > this.config.memoryThresholdPercent) {

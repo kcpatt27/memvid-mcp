@@ -87,17 +87,28 @@ class MemvidMCPServer {
   }
 
   private async loadConfig(): Promise<void> {
+    // Get the server's actual directory (where dist/server.js is located)
+    const serverDir = path.dirname(path.dirname(__filename)); // Go up from dist/ to project root
+    
     try {
       const configPath = process.env.MEMVID_CONFIG_PATH || 
-                        path.join(process.cwd(), 'config', 'default.json');
+                        path.join(serverDir, 'config', 'default.json');
       
       const configContent = await fs.readFile(configPath, 'utf-8');
       this.config = JSON.parse(configContent);
       
+      // Convert relative paths to absolute paths based on server directory
+      if (this.config.storage.memory_banks_dir.startsWith('./')) {
+        this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir.substring(2));
+      } else if (!path.isAbsolute(this.config.storage.memory_banks_dir)) {
+        this.config.storage.memory_banks_dir = path.join(serverDir, this.config.storage.memory_banks_dir);
+      }
+      
       logger.info(`Configuration loaded from ${configPath}`);
+      logger.info(`Memory banks directory: ${this.config.storage.memory_banks_dir}`);
     } catch (error) {
       logger.error('Failed to load configuration:', error);
-      // Use default configuration
+      // Use default configuration with absolute paths
       this.config = {
         memvid: {
           chunk_size: 512,
@@ -105,7 +116,7 @@ class MemvidMCPServer {
           embedding_model: 'sentence-transformers/all-MiniLM-L6-v2'
         },
         storage: {
-          memory_banks_dir: './memory-banks',
+          memory_banks_dir: path.join(serverDir, 'memory-banks'),
           max_file_size: '100MB',
           cleanup_temp_files: true
         },
@@ -120,6 +131,8 @@ class MemvidMCPServer {
           max_concurrent_searches: 5
         }
       };
+      
+      logger.info(`Using default configuration with memory banks at: ${this.config.storage.memory_banks_dir}`);
     }
   }
 
