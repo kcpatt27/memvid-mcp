@@ -1,0 +1,3 @@
+[submodule "memvid"]
+	path = memvid
+	url = https://github.com/Olow304/memvid.git
