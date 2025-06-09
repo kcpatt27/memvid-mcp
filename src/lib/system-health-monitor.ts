@@ -17,6 +17,7 @@ import os from 'os';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 export interface HealthMonitorConfig {
   checkIntervalMs: number;
@@ -266,6 +267,8 @@ export class SystemHealthMonitor extends EventEmitter {
 
     // Disk usage for current directory
           // Get the server's project directory
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
       const diskUsage = await this.getDiskUsage(serverDir);
 

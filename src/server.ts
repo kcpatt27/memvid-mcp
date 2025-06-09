@@ -10,6 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   CreateMemoryBankArgsSchema,
   SearchMemoryArgsSchema,
@@ -88,6 +89,7 @@ class MemvidMCPServer {
 
   private async loadConfig(): Promise<void> {
     // Get the server's actual directory (where dist/server.js is located)
+    const __filename = fileURLToPath(import.meta.url);
     const serverDir = path.dirname(path.dirname(__filename)); // Go up from dist/ to project root
     
     try {

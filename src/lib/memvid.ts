@@ -1,5 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 import { MemvidConfig, SearchResult, ContentMetadata } from '../types/index.js';
 import { logger } from './logger.js';
 import { ErrorRecoveryManager } from './error-recovery.js';
@@ -49,8 +51,8 @@ export class DirectMemvidIntegration {
   startHealthMonitoring(): void {
     if (!this.healthMonitor) {
       this.healthMonitor = new SystemHealthMonitor({
-        checkIntervalMs: 30000,
-        pythonBridgeTimeoutMs: 5000,
+        checkIntervalMs: 15000,
+        pythonBridgeTimeoutMs: 10000,
         memoryThresholdPercent: 85,
         diskThresholdPercent: 90,
         memoryBanksDir: './memory-banks'
@@ -120,6 +122,8 @@ export class DirectMemvidIntegration {
       logger.info('Initializing DirectMemvidIntegration...');
 
       // Get the server's project directory
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
       
       // Get Python executable path
@@ -127,10 +131,28 @@ export class DirectMemvidIntegration {
         ? path.join(serverDir, 'memvid-env', 'Scripts', 'python.exe')
         : path.join(serverDir, 'memvid-env', 'bin', 'python');
 
-      // Get bridge script path
-      const bridgePath = path.join(serverDir, 'src', 'lib', 'memvid-bridge.py');
+      // Get bridge script path - try both compiled and source versions
+      let bridgePath = path.join(__dirname, 'memvid-bridge.py'); // Compiled version
+      if (!existsSync(bridgePath)) {
+        bridgePath = path.join(serverDir, 'src', 'lib', 'memvid-bridge.py'); // Source version
+      }
+
+      logger.info(`Python executable: ${pythonPath}`);
+      logger.info(`Bridge script: ${bridgePath}`);
+      logger.info(`Working directory will be: ${path.join(serverDir, 'memvid')}`);
+
+      // Check if Python executable exists
+      if (!existsSync(pythonPath)) {
+        throw new Error(`Python executable not found: ${pythonPath}`);
+      }
+
+      // Check if bridge script exists
+      if (!existsSync(bridgePath)) {
+        throw new Error(`Bridge script not found: ${bridgePath}`);
+      }
 
       // Spawn Python bridge process
+      logger.info('Spawning Python bridge process...');
       this.pythonProcess = spawn(pythonPath, [bridgePath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: path.join(serverDir, 'memvid'), // Run from memvid directory
@@ -140,6 +162,8 @@ export class DirectMemvidIntegration {
       if (!this.pythonProcess.stdout || !this.pythonProcess.stdin || !this.pythonProcess.stderr) {
         throw new Error('Failed to create Python process stdio streams');
       }
+
+      logger.info(`Python bridge process spawned with PID: ${this.pythonProcess.pid}`);
 
       // Set up response handling
       let buffer = '';
@@ -159,7 +183,8 @@ export class DirectMemvidIntegration {
       this.pythonProcess.stderr.on('data', (data) => {
         const message = data.toString().trim();
         if (message) {
-          logger.warn('Python bridge stderr:', message);
+          // Log at info level for better visibility during debugging
+          logger.info('Python bridge stderr:', message);
         }
       });
 
@@ -405,9 +430,11 @@ export class DirectMemvidIntegration {
    */
   async ping(): Promise<boolean> {
     try {
-      const response = await this.sendRequest('ping', {}, 1000);
-      return response === 'pong';
-    } catch {
+      // Use longer timeout to match health monitor expectations
+      const response = await this.sendRequest('ping', {}, 8000);
+      return response?.status === 'pong';
+    } catch (error) {
+      logger.debug('Ping failed:', error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }

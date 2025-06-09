@@ -14,7 +14,8 @@
     "package.json"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-python",
+    "copy-python": "cp src/lib/memvid-bridge.py dist/lib/ || copy src\\lib\\memvid-bridge.py dist\\lib\\",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "test": "node test-simple-tools.js",

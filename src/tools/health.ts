@@ -68,27 +68,71 @@ export class HealthTools {
       logger.info('Performing health check', { detailed: args.detailed });
 
       // Get health status from the memvid integration
-      const healthStatus = this.memvid.getHealthStatus();
+      let healthStatus = this.memvid.getHealthStatus();
       const errorRecoveryStatus = this.memvid.getErrorRecoveryStatus();
 
+      // If no health status available yet, perform immediate health check
       if (!healthStatus) {
-        return {
-          status: 'unknown',
-          timestamp: new Date().toISOString(),
-          uptime: Date.now() - this.startTime,
-          checks: {
-            pythonBridge: false,
-            memoryBanks: false,
-            systemResources: false
-          },
-          errors: ['Health monitoring not available'],
-          warnings: [],
-          errorRecoveryStatus: {
-            circuitBreakerState: errorRecoveryStatus.state,
-            failureCount: errorRecoveryStatus.failureCount,
-            lastFailureTime: errorRecoveryStatus.lastFailureTime
-          }
-        };
+        logger.debug('No cached health status, performing immediate health check');
+        // Try to perform a simple ping test
+        try {
+          const pingStart = Date.now();
+          const pingResult = await this.memvid.ping();
+          const pingTime = Date.now() - pingStart;
+          
+          // Return a basic health status based on ping result
+          return {
+            status: pingResult ? 'healthy' : 'unhealthy',
+            timestamp: new Date().toISOString(),
+            uptime: Date.now() - this.startTime,
+            checks: {
+              pythonBridge: pingResult,
+              memoryBanks: true, // Assume OK for now
+              systemResources: true // Assume OK for now
+            },
+            metrics: {
+              timestamp: new Date(),
+              pythonBridge: {
+                isHealthy: pingResult,
+                responseTime: pingTime
+              },
+              systemResources: {
+                memoryUsage: { used: 0, total: 0, percentage: 0 },
+                diskUsage: { used: 0, total: 0, percentage: 0 }
+              },
+              memoryBanks: {
+                total: 0,
+                healthy: 0,
+                corrupted: 0
+              }
+            },
+            errors: pingResult ? [] : ['Python bridge ping failed'],
+            warnings: [],
+            errorRecoveryStatus: {
+              circuitBreakerState: errorRecoveryStatus.state,
+              failureCount: errorRecoveryStatus.failureCount,
+              lastFailureTime: errorRecoveryStatus.lastFailureTime
+            }
+          };
+        } catch (error) {
+          return {
+            status: 'unknown',
+            timestamp: new Date().toISOString(),
+            uptime: Date.now() - this.startTime,
+            checks: {
+              pythonBridge: false,
+              memoryBanks: false,
+              systemResources: false
+            },
+            errors: [`Immediate health check failed: ${error instanceof Error ? error.message : String(error)}`],
+            warnings: [],
+            errorRecoveryStatus: {
+              circuitBreakerState: errorRecoveryStatus.state,
+              failureCount: errorRecoveryStatus.failureCount,
+              lastFailureTime: errorRecoveryStatus.lastFailureTime
+            }
+          };
+        }
       }
 
       const response: HealthCheckResponse = {

@@ -247,8 +247,11 @@ Repository: ${packageInfo.repository || 'https://github.com/kcpatt27/memvid-mcp-
       // Try to read package.json from multiple locations
       const fs = require('fs');
       const path = require('path');
+      const { fileURLToPath } = require('url');
       
       // Try relative to this file first
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       let packagePath = path.resolve(__dirname, '../../package.json');
       if (!fs.existsSync(packagePath)) {
         // Try relative to cwd

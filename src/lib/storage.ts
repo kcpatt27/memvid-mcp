@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { MemoryBankMetadata, ServerConfig } from '../types/index.js';
 import { logger } from './logger.js';
 
@@ -9,6 +10,8 @@ export class StorageManager {
 
   constructor(private config: ServerConfig) {
     // Get the server's project directory by going up from dist/
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
     this.registryPath = path.join(serverDir, 'config', 'memory-banks.json');
     this.memoryBanksDir = path.resolve(config.storage.memory_banks_dir);
@@ -20,6 +23,8 @@ export class StorageManager {
   async initialize(): Promise<void> {
     try {
       // Get the server's project directory
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
       
       // Create memory banks directory
@@ -205,6 +210,8 @@ export class StorageManager {
     }
 
     try {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
       const tempDir = path.join(serverDir, 'temp');
       const files = await fs.readdir(tempDir);

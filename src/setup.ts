@@ -251,6 +251,12 @@ async function main() {
     return;
   }
   
+  // If called from MCP client (no TTY), start server directly
+  if (process.stdin.isTTY === false) {
+    runServer();
+    return;
+  }
+  
   // Default behavior: setup
   printHeader();
   

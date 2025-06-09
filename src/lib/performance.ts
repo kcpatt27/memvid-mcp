@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { performance } from 'perf_hooks';
 import { logger } from './logger.js';
 import { MemvidIntegration } from './memvid.js';
@@ -43,6 +44,8 @@ export class PerformanceProfiler {
     this.memvid = new MemvidIntegration(config.memvid);
     this.storage = new StorageManager(config);
     // Get the server's project directory
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
     this.reportPath = path.join(serverDir, 'performance-reports');
   }
@@ -115,6 +118,8 @@ export class PerformanceProfiler {
     ];
 
     for (const testCase of testCases) {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
       const tempFile = path.join(serverDir, 'temp', `benchmark_${testCase.name}.txt`);
       
@@ -173,6 +178,8 @@ export class PerformanceProfiler {
     // Create a test memory bank for searching
     const testBankName = `search_benchmark_${Date.now()}`;
     const testContent = 'Machine learning artificial intelligence deep learning neural networks computer vision natural language processing data science statistics algorithms optimization'.repeat(50);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
     const testFile = path.join(serverDir, 'temp', 'search_benchmark.txt');
     
