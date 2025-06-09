@@ -259,4 +259,8 @@ MIT License - see [LICENSE file](https://github.com/kcpatt27/memvid-mcp-server) 
 - **Contribution**: [Want to make some changes?](https://github.com/kcpatt27/memvid-mcp-server/CONTRIBUTING.md)
 - **MCP Documentation**: [MCP Protocol Guide](https://modelcontextprotocol.io/)
 
+## Dependencies
+
+This project uses [MemVid](https://github.com/Olow304/memvid) by Olow304 as a git submodule for video-based AI memory storage.
+
 ---
