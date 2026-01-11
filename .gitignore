@@ -40,6 +40,7 @@ tests/fixtures/*.json
 memory-bank/
 memory-banks/
 .memvid/
+temp-docs/
 
 # Temporary files and debugging
 temp/
