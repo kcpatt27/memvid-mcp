@@ -6,6 +6,14 @@ import { MemvidConfig, SearchResult, ContentMetadata } from '../types/index.js';
 import { logger } from './logger.js';
 import { ErrorRecoveryManager } from './error-recovery.js';
 import { SystemHealthMonitor } from './system-health-monitor.js';
+import { ConfigManager } from './config.js';
+import { buildPythonBridgeEnv } from './python-env.js';
+
+export interface DirectMemvidIntegrationOptions {
+  memoryBanksDir?: string;
+  pythonExecutable?: string;
+  allowedPaths?: string[];
+}
 
 interface JsonRpcRequest {
   id: string;
@@ -40,9 +48,43 @@ export class DirectMemvidIntegration {
   private initializationPromise: Promise<void> | null = null;
   private errorRecovery: ErrorRecoveryManager;
   private healthMonitor: SystemHealthMonitor | null = null;
+  private memvidConfig: MemvidConfig;
+  private memoryBanksDir: string;
+  private pythonExecutable: string | undefined;
+  private allowedPaths: string[];
 
-  constructor(private config: MemvidConfig) {
+  constructor(config: MemvidConfig, options?: DirectMemvidIntegrationOptions) {
     this.errorRecovery = new ErrorRecoveryManager();
+    this.memvidConfig = config;
+    this.memoryBanksDir = options?.memoryBanksDir || './memory-banks';
+    this.pythonExecutable = options?.pythonExecutable;
+    this.allowedPaths = options?.allowedPaths ?? [];
+  }
+
+  private getServerDir(): string {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    return path.dirname(path.dirname(__dirname));
+  }
+
+  private async resolvePythonPath(serverDir: string): Promise<string> {
+    if (process.env.PYTHON_EXECUTABLE) {
+      return process.env.PYTHON_EXECUTABLE;
+    }
+    if (this.pythonExecutable) {
+      return this.pythonExecutable;
+    }
+
+    const venvPython = process.platform === 'win32'
+      ? path.join(serverDir, 'memvid-env', 'Scripts', 'python.exe')
+      : path.join(serverDir, 'memvid-env', 'bin', 'python');
+
+    if (existsSync(venvPython)) {
+      return venvPython;
+    }
+
+    const envConfig = await ConfigManager.getInstance().getEnvironmentConfig();
+    return envConfig.pythonExecutable;
   }
 
   /**
@@ -55,7 +97,7 @@ export class DirectMemvidIntegration {
         pythonBridgeTimeoutMs: 10000,
         memoryThresholdPercent: 85,
         diskThresholdPercent: 90,
-        memoryBanksDir: './memory-banks'
+        memoryBanksDir: this.memoryBanksDir
       }, this);
 
       // Set up event listeners for health alerts
@@ -121,17 +163,12 @@ export class DirectMemvidIntegration {
     try {
       logger.info('Initializing DirectMemvidIntegration...');
 
-      // Get the server's project directory
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
-      const serverDir = path.dirname(path.dirname(__dirname)); // Go up from dist/lib/ to project root
-      
-      // Get Python executable path
-      const pythonPath = process.platform === 'win32' 
-        ? path.join(serverDir, 'memvid-env', 'Scripts', 'python.exe')
-        : path.join(serverDir, 'memvid-env', 'bin', 'python');
+      const serverDir = this.getServerDir();
+      const pythonPath = await this.resolvePythonPath(serverDir);
 
       // Get bridge script path - try both compiled and source versions
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = path.dirname(__filename);
       let bridgePath = path.join(__dirname, 'memvid-bridge.py'); // Compiled version
       if (!existsSync(bridgePath)) {
         bridgePath = path.join(serverDir, 'src', 'lib', 'memvid-bridge.py'); // Source version
@@ -139,12 +176,8 @@ export class DirectMemvidIntegration {
 
       logger.info(`Python executable: ${pythonPath}`);
       logger.info(`Bridge script: ${bridgePath}`);
+      logger.info(`Memory banks directory: ${this.memoryBanksDir}`);
       logger.info(`Working directory will be: ${path.join(serverDir, 'memvid')}`);
-
-      // Check if Python executable exists
-      if (!existsSync(pythonPath)) {
-        throw new Error(`Python executable not found: ${pythonPath}`);
-      }
 
       // Check if bridge script exists
       if (!existsSync(bridgePath)) {
@@ -156,7 +189,10 @@ export class DirectMemvidIntegration {
       this.pythonProcess = spawn(pythonPath, [bridgePath], {
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: path.join(serverDir, 'memvid'), // Run from memvid directory
-        env: { ...process.env, PYTHONUNBUFFERED: '1' }
+        env: buildPythonBridgeEnv({
+          memoryBanksDir: this.memoryBanksDir,
+          allowedPaths: this.allowedPaths,
+        })
       });
 
       if (!this.pythonProcess.stdout || !this.pythonProcess.stdin || !this.pythonProcess.stderr) {
@@ -254,7 +290,6 @@ export class DirectMemvidIntegration {
         if (response.error) {
           const error = new Error(response.error.message);
           (error as any).type = response.error.type;
-          (error as any).traceback = response.error.traceback;
           pending.reject(error);
         } else {
           pending.resolve(response.result);
@@ -306,9 +341,9 @@ export class DirectMemvidIntegration {
       const result = await this.sendRequest('encode', {
         sources,
         output_path: outputPath,
-        chunk_size: this.config.chunk_size,
-        overlap: this.config.overlap,
-        embedding_model: this.config.embedding_model
+        chunk_size: this.memvidConfig.chunk_size,
+        overlap: this.memvidConfig.overlap,
+        embedding_model: this.memvidConfig.embedding_model
       });
 
       return {
@@ -386,8 +421,8 @@ export class DirectMemvidIntegration {
         bank_path: bankPath,
         content,
         metadata: metadata || {},
-        chunk_size: this.config.chunk_size,
-        overlap: this.config.overlap
+        chunk_size: this.memvidConfig.chunk_size,
+        overlap: this.memvidConfig.overlap
       });
 
       return {

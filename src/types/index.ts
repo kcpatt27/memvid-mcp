@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MemoryBankNameSchema } from '../lib/bank-name.js';
 
 // Configuration types
 export interface MemvidConfig {
@@ -69,7 +70,7 @@ export interface SearchResult {
 
 // Tool argument schemas using Zod
 export const CreateMemoryBankArgsSchema = z.object({
-  name: z.string().min(1).max(50),
+  name: MemoryBankNameSchema,
   description: z.string().optional(),
   sources: z.array(z.object({
     type: z.enum(['file', 'directory', 'url', 'text']),
@@ -101,7 +102,7 @@ export interface SearchFilters {
 
 export const SearchMemoryArgsSchema = z.object({
   query: z.string().min(1),
-  memory_banks: z.array(z.string()).optional(),
+  memory_banks: z.array(MemoryBankNameSchema).optional(),
   top_k: z.number().min(1).max(50).optional(),
   min_score: z.number().min(0).max(1).optional(),
   filters: z.object({
@@ -123,7 +124,7 @@ export const SearchMemoryArgsSchema = z.object({
 });
 
 export const AddToMemoryArgsSchema = z.object({
-  memory_bank: z.string().min(1),
+  memory_bank: MemoryBankNameSchema,
   content: z.string().min(1),
   metadata: z.object({
     source: z.string().optional(),
@@ -135,7 +136,7 @@ export const AddToMemoryArgsSchema = z.object({
 
 export const GetContextArgsSchema = z.object({
   query: z.string().min(1),
-  memory_banks: z.array(z.string()).optional(),
+  memory_banks: z.array(MemoryBankNameSchema).optional(),
   max_tokens: z.number().min(100).max(20000).optional(),
   include_metadata: z.boolean().optional(),
 });

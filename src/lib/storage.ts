@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { MemoryBankMetadata, ServerConfig } from '../types/index.js';
 import { logger } from './logger.js';
+import { resolveBankFilePath } from './bank-name.js';
 
 export class StorageManager {
   private registryPath: string;
@@ -173,7 +174,7 @@ export class StorageManager {
    * Get file path for a memory bank
    */
   getMemoryBankPath(name: string): string {
-    return path.join(this.memoryBanksDir, `${name}.mp4`);
+    return resolveBankFilePath(this.memoryBanksDir, name, 'mp4');
   }
 
   /**

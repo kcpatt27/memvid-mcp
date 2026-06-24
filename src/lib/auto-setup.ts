@@ -1,4 +1,4 @@
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -352,6 +352,32 @@ except Exception as e:
     return this.detectSetup();
   }
 
+  private static isSafeExecutablePath(executablePath: string): boolean {
+    return executablePath.length > 0 &&
+      executablePath.length < 260 &&
+      !/[;&|`$<>]/.test(executablePath);
+  }
+
+  private static runCommand(command: string, args: string[], timeoutMs = 60000): Promise<boolean> {
+    return new Promise((resolve) => {
+      const proc = spawn(command, args, { stdio: 'inherit' });
+      const timer = setTimeout(() => {
+        proc.kill();
+        resolve(false);
+      }, timeoutMs);
+
+      proc.on('close', (code) => {
+        clearTimeout(timer);
+        resolve(code === 0);
+      });
+
+      proc.on('error', () => {
+        clearTimeout(timer);
+        resolve(false);
+      });
+    });
+  }
+
   /**
    * Attempt to install MemVid automatically
    */
@@ -359,28 +385,26 @@ except Exception as e:
     try {
       console.log('🔧 Attempting to install MemVid automatically...');
       
-      // Try pip install
       const pipCommands = ['pip', 'pip3'];
       
       for (const pipCmd of pipCommands) {
-        try {
-          execSync(`${pipCmd} install memvid`, { stdio: 'inherit', timeout: 60000 });
+        if (await this.runCommand(pipCmd, ['install', 'memvid'])) {
           console.log('✅ MemVid installed successfully!');
           return true;
-        } catch (error) {
-          // Try next pip command
         }
       }
 
-      // Try with python -m pip
-      try {
-        execSync(`${pythonPath} -m pip install memvid`, { stdio: 'inherit', timeout: 60000 });
-        console.log('✅ MemVid installed successfully!');
-        return true;
-      } catch (error) {
-        console.error('❌ Failed to install MemVid automatically');
-        return false;
+      if (this.isSafeExecutablePath(pythonPath)) {
+        if (await this.runCommand(pythonPath, ['-m', 'pip', 'install', 'memvid'])) {
+          console.log('✅ MemVid installed successfully!');
+          return true;
+        }
+      } else {
+        console.error('❌ Refusing to run install with unsafe Python executable path');
       }
+
+      console.error('❌ Failed to install MemVid automatically');
+      return false;
     } catch (error) {
       console.error('❌ Auto-install failed:', error);
       return false;

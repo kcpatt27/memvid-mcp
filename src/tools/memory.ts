@@ -15,19 +15,38 @@ import {
   InvalidSourceError,
   ServerConfig
 } from '../types/index.js';
-import { DirectMemvidIntegration } from '../lib/memvid.js';
+import { DirectMemvidIntegration, DirectMemvidIntegrationOptions } from '../lib/memvid.js';
 import { StorageManager } from '../lib/storage.js';
 import { logger } from '../lib/logger.js';
 import { getSearchCache } from '../lib/search-cache.js';
 import { memoryBankValidator, MemoryBankValidator } from '../lib/memory-bank-validator.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import {
+  assertAllowedSourcePath,
+  getAllowedPathRoots,
+  isUrlSourcesEnabled
+} from '../lib/path-policy.js';
 
 export class MemoryTools {
   private memvid: DirectMemvidIntegration;
   private storage: StorageManager;
   private validator: MemoryBankValidator;
+  private allowedRoots: string[];
 
   constructor(private config: ServerConfig) {
-    this.memvid = new DirectMemvidIntegration(config.memvid);
+    const __filename = fileURLToPath(import.meta.url);
+    const serverDir = path.dirname(path.dirname(path.dirname(__filename)));
+    this.allowedRoots = getAllowedPathRoots(config.storage.memory_banks_dir, serverDir);
+
+    const memvidOptions: DirectMemvidIntegrationOptions = {
+      memoryBanksDir: config.storage.memory_banks_dir,
+      allowedPaths: this.allowedRoots,
+    };
+    if (process.env.PYTHON_EXECUTABLE) {
+      memvidOptions.pythonExecutable = process.env.PYTHON_EXECUTABLE;
+    }
+    this.memvid = new DirectMemvidIntegration(config.memvid, memvidOptions);
     this.storage = new StorageManager(config);
     // Create validator with correct memory banks directory
     this.validator = new MemoryBankValidator(config.storage.memory_banks_dir as string);
@@ -51,6 +70,13 @@ export class MemoryTools {
   }
 
   /**
+   * Shut down the Python bridge and release resources.
+   */
+  async shutdown(): Promise<void> {
+    await this.memvid.destroy();
+  }
+
+  /**
    * Create a new memory bank from sources
    */
   async createMemoryBank(args: CreateMemoryBankArgs): Promise<CreateMemoryBankResponse> {
@@ -61,6 +87,22 @@ export class MemoryTools {
       for (const source of args.sources) {
         if (!source.path || source.path.trim() === '') {
           throw new InvalidSourceError(source.path, 'Path cannot be empty');
+        }
+        if (source.type === 'file' || source.type === 'directory') {
+          try {
+            assertAllowedSourcePath(source.path, this.allowedRoots);
+          } catch (error) {
+            throw new InvalidSourceError(
+              source.path,
+              error instanceof Error ? error.message : 'Path not allowed'
+            );
+          }
+        }
+        if (source.type === 'url' && !isUrlSourcesEnabled()) {
+          throw new InvalidSourceError(
+            source.path,
+            'URL sources are disabled. Set MEMVID_ALLOW_URL_SOURCES=true to enable.'
+          );
         }
       }
 

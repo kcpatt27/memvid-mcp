@@ -43,10 +43,16 @@ MemVid MCP Server enables AI assistants (like Cursor and Claude Desktop) to unde
 - ✅ One-command installation via npx
 
 **In Progress:**
-- 🔄 Direct Python integration (ETA: 2-3 weeks) - Critical performance fix
-- 🔄 Enhanced error recovery (ETA: 1 week)
+- 🔄 Security hardening (see [docs/SECURITY.md](docs/SECURITY.md)) — audit complete, implementation in Pass 2–5
 - 🔄 Documentation improvements (ETA: 1 week)
 - 🔄 Performance monitoring dashboard (ETA: 1 week)
+
+**Recently completed (2026-06):**
+- ✅ Direct Python bridge integration (Phase 3a) — persistent `memvid-bridge.py`, lazy loading
+- ✅ `PYTHON_EXECUTABLE` / ConfigManager wiring in `DirectMemvidIntegration`
+- ✅ `output_path` honored in Python bridge; `MEMORY_BANKS_DIR` passed to child process
+- ✅ Windows UTF-8 encoding for Python child (`PYTHONIOENCODING`, `PYTHONUTF8`)
+- ✅ End-to-end smoke test: `tests/smoke-test.mjs`
 
 **Planned/Roadmap:** [See full roadmap below](#now-next-4-weeks)
 
@@ -54,7 +60,7 @@ MemVid MCP Server enables AI assistants (like Cursor and Claude Desktop) to unde
 - **Lines of code:** ~6,000+ (TypeScript/JavaScript)
 - **Test coverage:** 50+ test files (unit, integration, performance, MCP protocol)
 - **Documentation coverage:** 100% (README, ARCHITECTURE, ROADMAP, CONTRIBUTING)
-- **Last updated:** January 2025
+- **Last updated:** June 2026
 
 ---
 
@@ -81,15 +87,15 @@ MemVid MCP Server enables AI assistants (like Cursor and Claude Desktop) to unde
 - **Platform Support:** Windows, macOS, Linux
 - **Installation:** One-command via `npx @kcpatt27/memvid-mcp`
 
-**Project Status:** Production-ready with known performance bottleneck identified
+**Project Status:** Production-ready for local/trusted MCP clients; security hardening tracked in [docs/SECURITY.md](docs/SECURITY.md)
 
 **Team Size:** Solo developer
 
 **Known Constraints:**
-- Subprocess overhead causing 30+ second timeouts (root cause identified, solution planned)
+- Security: arbitrary file read and SSRF primitives in `create_memory_bank` (documented; hardening planned)
+- Supply chain: unpinned `@modelcontextprotocol/sdk`, no committed lockfile
+- Windows: requires UTF-8 env vars on Python child process for memvid emoji output
 - Limited time for development (solo project)
-- Waiting for user feedback to prioritize features
-- Technical debt: Need to replace subprocess architecture with direct Python integration
 
 ## Now (Next 4 weeks)
 

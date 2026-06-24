@@ -1,20 +1,47 @@
 # MemVid MCP Server - Cursor Intelligence
 
-## 🚨 **CRITICAL PROJECT INTELLIGENCE - ARCHITECTURE BREAKTHROUGH** 🚨
+## CRITICAL PROJECT INTELLIGENCE - ARCHITECTURE (updated 2026-06)
 
-### **Performance Crisis Resolution - ROOT CAUSE IDENTIFIED**
-**MAJOR DISCOVERY (2024-12-24)**: The MemVid MCP Server performance issues are NOT caused by MemVid core, Python environment, or MCP protocol. The bottleneck is the subprocess wrapper architecture in the MCP server.
+### Current architecture: Direct Python bridge (IMPLEMENTED)
 
-**Critical Evidence**:
+The per-operation subprocess bottleneck (Dec 2024) was replaced by `DirectMemvidIntegration` in `src/lib/memvid.ts` + persistent `src/lib/memvid-bridge.py` with JSON-RPC over stdin/stdout.
+
+**Working path:**
 ```
-✅ Direct MemVid Core: 3.665 seconds - EXCELLENT vs 2s target
-❌ MCP Server Subprocess: 30+ seconds timeout - BOTTLENECK
-✅ MCP Protocol: <10ms communication - PERFECT
-✅ Enhanced Search Logic: Working when data available
-
-ROOT CAUSE: 25+ seconds subprocess overhead per operation (55x degradation)
-SOLUTION: Replace subprocess with direct integration → target 3-5s total
+MCP Client → server.ts → memory.ts → DirectMemvidIntegration → memvid-bridge.py → MemVid core
 ```
+
+**Performance (verified 2026-06):**
+- Bridge startup: ~500ms (lazy loading)
+- Memory bank create + search: end-to-end smoke test passes (`npm test` → `tests/smoke-test.mjs`)
+- Cached search: ~3ms
+
+### Integration fixes applied (2026-06)
+
+1. **Python path:** Resolution order — `PYTHON_EXECUTABLE` → ConfigManager → `memvid-env/` venv → system Python
+2. **output_path:** Python bridge honors TypeScript `output_path`; files land in configured `memory_banks_dir`
+3. **Windows UTF-8:** Spawn env includes `PYTHONIOENCODING=utf-8`, `PYTHONUTF8=1` (memvid encoder uses emoji in print)
+4. **MEMORY_BANKS_DIR:** Passed to Python child process
+
+### Local dev bootstrap
+
+```powershell
+git submodule update --init --recursive
+npm install && npm run build
+python -m venv memvid-env
+.\memvid-env\Scripts\pip install -e .\memvid
+$env:PYTHON_EXECUTABLE = ".\memvid-env\Scripts\python.exe"
+node dist/cli.js --check
+npm test
+```
+
+### Security
+
+See `docs/SECURITY.md` for audit results and hardening roadmap (Pass 2–5). Trust model: local stdio MCP with full user filesystem privileges.
+
+## LEGACY NOTE (Dec 2024 - RESOLVED)
+
+The subprocess-per-operation pattern below was the original bottleneck. Do NOT reintroduce it.
 
 ## 🎯 **PROVEN WORKING COMPONENTS**
 
@@ -37,9 +64,9 @@ SOLUTION: Replace subprocess with direct integration → target 3-5s total
 - **Aggregation Logic**: Multi-bank search and result merging operational
 - **Performance**: <100ms when memory bank data available
 
-## 🚨 **ARCHITECTURE BOTTLENECK - SUBPROCESS LAYER**
+## ARCHITECTURE - SUBPROCESS LAYER (LEGACY - DO NOT USE)
 
-### **Problem Pattern (AVOID)**
+### Problem Pattern (AVOID - replaced by DirectMemvidIntegration)
 ```typescript
 // PROBLEMATIC: Current subprocess approach in src/lib/memvid.ts
 const result = await new Promise((resolve, reject) => {
@@ -53,22 +80,14 @@ const result = await new Promise((resolve, reject) => {
 });
 ```
 
-### **Solution Pattern (TARGET)**
+### Solution Pattern (CURRENT - implemented in src/lib/memvid.ts)
 ```typescript
-// TARGET: Direct integration approach  
-class DirectPythonBridge {
-  private pythonProcess: ChildProcess;
-  
-  async initialize(): Promise<void> {
-    // Single persistent Python process with MemVid loaded
-    this.pythonProcess = spawn(pythonExecutable, ['-c', memvidAPIServer]);
-  }
-  
-  async createMemoryBank(content: string): Promise<void> {
-    // Direct API call - target 3-5s performance
-    return await this.sendCommand({ operation: 'create_bank', content });
-  }
-}
+// CURRENT: DirectMemvidIntegration spawns one persistent Python process
+this.pythonProcess = spawn(pythonPath, [bridgePath], {
+  cwd: path.join(serverDir, 'memvid'),
+  env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONIOENCODING: 'utf-8', MEMORY_BANKS_DIR }
+});
+// JSON-RPC over stdin/stdout to memvid-bridge.py
 ```
 
 ## 📁 **PROJECT STRUCTURE INTELLIGENCE**
@@ -135,11 +154,11 @@ SEARCH_RESULT_LIMIT=50                             # ✅ Search pagination
 
 ## 🎯 **IMPLEMENTATION PRIORITIES**
 
-### **Phase 3a - Architecture Fix (URGENT)**
-1. **Primary Goal**: Replace subprocess bottleneck in `src/lib/memvid.ts`
-2. **Target Performance**: 3-5s memory bank creation (vs 30s+ timeout)
-3. **Success Metric**: 100% success rate (vs current 0%)
-4. **Implementation**: Direct Python bridge with persistent process
+### **Phase 3a - Architecture Fix (COMPLETE)**
+1. ~~Replace subprocess bottleneck~~ Done: `DirectMemvidIntegration` + `memvid-bridge.py`
+2. ~~Wire PYTHON_EXECUTABLE~~ Done (2026-06)
+3. ~~Honor output_path in bridge~~ Done (2026-06)
+4. Next: Security Pass 2 per `docs/SECURITY.md`
 
 ### **Architecture Decision Matrix**
 | Approach | Performance | Implementation | Risk |

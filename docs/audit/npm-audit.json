@@ -1,0 +1,102 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@modelcontextprotocol/sdk": {
+      "name": "@modelcontextprotocol/sdk",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1111906,
+          "name": "@modelcontextprotocol/sdk",
+          "dependency": "@modelcontextprotocol/sdk",
+          "title": "Anthropic's MCP TypeScript SDK has a ReDoS vulnerability",
+          "url": "https://github.com/advisories/GHSA-8r9q-7v3j-jr4g",
+          "severity": "high",
+          "cwe": [
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<1.25.2"
+        },
+        {
+          "source": 1113213,
+          "name": "@modelcontextprotocol/sdk",
+          "dependency": "@modelcontextprotocol/sdk",
+          "title": "Model Context Protocol (MCP) TypeScript SDK does not enable DNS rebinding protection by default",
+          "url": "https://github.com/advisories/GHSA-w48q-cv73-mx4w",
+          "severity": "high",
+          "cwe": [
+            "CWE-350",
+            "CWE-1188"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<1.24.0"
+        }
+      ],
+      "effects": [],
+      "range": "<=1.25.1",
+      "nodes": [
+        "node_modules/@modelcontextprotocol/sdk"
+      ],
+      "fixAvailable": {
+        "name": "@modelcontextprotocol/sdk",
+        "version": "1.29.0"
+      }
+    },
+    "diff": {
+      "name": "diff",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1112704,
+          "name": "diff",
+          "dependency": "diff",
+          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx",
+          "severity": "low",
+          "cwe": [
+            "CWE-400",
+            "CWE-1333"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=4.0.0 <4.0.4"
+        }
+      ],
+      "effects": [],
+      "range": "4.0.0 - 4.0.3",
+      "nodes": [
+        "node_modules/diff"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 0,
+      "high": 1,
+      "critical": 0,
+      "total": 2
+    },
+    "dependencies": {
+      "prod": 69,
+      "dev": 0,
+      "optional": 0,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 68
+    }
+  }
+}

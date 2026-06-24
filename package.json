@@ -21,7 +21,8 @@
     "copy-config": "mkdir -p dist/config && cp config/default.json dist/config/ || (mkdir dist\\config & copy config\\default.json dist\\config\\)",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
-    "test": "node test-simple-tools.js",
+    "test": "node tests/smoke-test.mjs",
+    "test:security": "node tests/security/bank-name.test.mjs && node tests/security/source-policy.test.mjs",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "setup": "node dist/cli.js",
@@ -53,7 +54,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "latest",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "winston": "^3.11.0"

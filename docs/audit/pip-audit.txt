@@ -1,0 +1,15 @@
+Found 12 known vulnerabilities in 3 packages
+Name          Version ID             Fix Versions
+------------- ------- -------------- ------------
+pillow        11.2.1  PYSEC-2025-61  11.3.0
+pillow        11.2.1  PYSEC-2025-61  11.3.0
+pillow        11.2.1  PYSEC-2026-165 12.2.0
+pillow        11.2.1  PYSEC-2026-165 12.2.0
+pillow        11.2.1  CVE-2026-25990 12.1.1
+pillow        11.2.1  CVE-2026-40192 12.2.0
+pillow        11.2.1  CVE-2026-42309 12.2.0
+pillow        11.2.1  CVE-2026-42310 12.2.0
+pillow        11.2.1  CVE-2026-42311 12.2.0
+python-dotenv 1.1.0   CVE-2026-28684 1.2.2
+transformers  4.57.6  PYSEC-2025-217
+transformers  4.57.6  CVE-2026-1839  5.0.0rc3

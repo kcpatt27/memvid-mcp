@@ -23,6 +23,7 @@ import {
 import { MemoryTools } from './tools/memory.js';
 import { HealthTools } from './tools/health.js';
 import { logger } from './lib/logger.js';
+import { sanitizeToolArgsForLog } from './lib/log-sanitize.js';
 import { CLI } from './lib/cli.js';
 import { AutoSetup } from './lib/auto-setup.js';
 
@@ -407,9 +408,15 @@ class MemvidMCPServer {
 
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-      logger.info(`Received tool call request:`, JSON.stringify(request, null, 2));
       const { name, arguments: args } = request.params;
-      logger.info(`Tool name: ${name}, args:`, JSON.stringify(args, null, 2));
+      const isMcpMode = !process.stdin.isTTY || process.argv.includes('--mcp');
+
+      if (isMcpMode) {
+        logger.info(`Tool call: ${name}`, JSON.stringify(sanitizeToolArgsForLog(name, args)));
+      } else {
+        logger.info(`Received tool call request:`, JSON.stringify(request, null, 2));
+        logger.info(`Tool name: ${name}, args:`, JSON.stringify(args, null, 2));
+      }
 
       try {
         switch (name) {

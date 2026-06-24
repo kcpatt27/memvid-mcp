@@ -50,6 +50,73 @@ except Exception as e:
     logger.error(f"Traceback: {traceback.format_exc()}")
     sys.exit(1)
 
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
+
+def _url_sources_enabled() -> bool:
+    value = os.environ.get('MEMVID_ALLOW_URL_SOURCES', '').strip().lower()
+    return value in ('1', 'true', 'yes')
+
+
+def _get_allowed_roots() -> list:
+    roots = []
+    for key in ('MEMORY_BANKS_DIR', 'MEMVID_WORKSPACE_ROOT'):
+        val = os.environ.get(key, '').strip()
+        if val:
+            roots.append(os.path.realpath(val) if os.path.exists(val) else os.path.abspath(val))
+    extra = os.environ.get('MEMVID_ALLOWED_PATHS', '')
+    if extra:
+        for part in extra.split(os.path.pathsep):
+            part = part.strip()
+            if part:
+                roots.append(os.path.realpath(part) if os.path.exists(part) else os.path.abspath(part))
+    return roots
+
+
+def _is_path_allowed(target_path: str) -> bool:
+    roots = _get_allowed_roots()
+    if not roots:
+        return False
+    abs_target = os.path.realpath(target_path) if os.path.exists(target_path) else os.path.abspath(target_path)
+    for root in roots:
+        try:
+            if os.path.commonpath([abs_target, root]) == root:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _validate_url(url: str) -> None:
+    if not _url_sources_enabled():
+        raise ValueError('URL sources are disabled. Set MEMVID_ALLOW_URL_SOURCES=true to enable.')
+    parsed = urlparse(url)
+    if parsed.scheme != 'https':
+        raise ValueError(f'URL scheme not allowed: {parsed.scheme or "(none)"}. Only HTTPS is permitted.')
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError('Invalid URL: missing hostname')
+    if hostname.lower() in ('localhost', '127.0.0.1', '::1', '0.0.0.0'):
+        raise ValueError(f'URL hostname not allowed: {hostname}')
+    blocked_hosts = ('metadata.google.internal', 'metadata.goog')
+    if hostname.lower() in blocked_hosts:
+        raise ValueError(f'URL hostname not allowed: {hostname}')
+    try:
+        addr_infos = socket.getaddrinfo(hostname, parsed.port or 443, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f'Could not resolve URL hostname: {hostname}') from exc
+    for _, _, _, _, sockaddr in addr_infos:
+        ip_str = sockaddr[0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            raise ValueError(f'URL resolves to blocked address: {ip_str}')
+
+
 class DirectMemvidBridge:
     def __init__(self):
         self.encoders = {}
@@ -137,7 +204,29 @@ class DirectMemvidBridge:
             self._request_count += 1
             return self._request_count
     
-    def create_memory_bank(self, bank_name: str, sources: list, **kwargs):
+    def _paths_from_output(self, output_path: Optional[str], bank_name: str) -> tuple[str, str]:
+        """Derive video and index paths from output_path or MEMORY_BANKS_DIR."""
+        if output_path:
+            base_path = output_path
+            for ext in ('.mp4', '.json', '.faiss'):
+                if base_path.lower().endswith(ext):
+                    base_path = base_path[: -len(ext)]
+                    break
+            video_path = f"{base_path}.mp4"
+            index_path = base_path
+        else:
+            banks_dir = os.environ.get('MEMORY_BANKS_DIR', 'memory-banks')
+            os.makedirs(banks_dir, exist_ok=True)
+            video_path = os.path.join(banks_dir, f"{bank_name}.mp4")
+            index_path = os.path.join(banks_dir, bank_name)
+
+        parent_dir = os.path.dirname(os.path.abspath(video_path))
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+
+        return video_path, index_path
+
+    def create_memory_bank(self, bank_name: str, sources: list, output_path: Optional[str] = None, **kwargs):
         """Create a new memory bank from sources - Thread-safe implementation"""
         request_id = self._get_request_id()
         try:
@@ -167,7 +256,8 @@ class DirectMemvidBridge:
                             # Direct text content
                             content_text += source_path + "\n\n"
                         elif source_type == 'file':
-                            # Read file content
+                            if not _is_path_allowed(source_path):
+                                raise ValueError(f'Path not allowed: {source_path}')
                             logger.info(f"[REQ-{request_id}] Reading file: {source_path}")
                             if os.path.exists(source_path):
                                 with open(source_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -177,7 +267,8 @@ class DirectMemvidBridge:
                             else:
                                 logger.warning(f"[REQ-{request_id}] File not found: {source_path}")
                         elif source_type == 'directory':
-                            # Process directory contents
+                            if not _is_path_allowed(source_path):
+                                raise ValueError(f'Path not allowed: {source_path}')
                             logger.info(f"[REQ-{request_id}] Processing directory: {source_path}")
                             if os.path.exists(source_path) and os.path.isdir(source_path):
                                 options = source.get('options', {})
@@ -204,9 +295,9 @@ class DirectMemvidBridge:
                             else:
                                 logger.warning(f"[REQ-{request_id}] Directory not found: {source_path}")
                         elif source_type == 'url':
-                            # URL fetching (basic implementation)
                             logger.info(f"[REQ-{request_id}] Fetching URL: {source_path}")
                             try:
+                                _validate_url(source_path)
                                 import urllib.request
                                 with urllib.request.urlopen(source_path) as response:
                                     url_content = response.read().decode('utf-8', errors='ignore')
@@ -233,8 +324,8 @@ class DirectMemvidBridge:
             encoder.add_text(content_text)
             
             # Build video and index files
-            video_path = f"memory-banks/{bank_name}.mp4"
-            index_path = f"memory-banks/{bank_name}"
+            resolved_output = output_path or kwargs.get('output_path')
+            video_path, index_path = self._paths_from_output(resolved_output, bank_name)
             
             result = encoder.build_video(video_path, index_path)
             
@@ -448,7 +539,7 @@ def main():
                     # Extract bank name from output path
                     bank_name = os.path.basename(output_path).replace('.mp4', '')
                     
-                    result = bridge.create_memory_bank(bank_name, sources)
+                    result = bridge.create_memory_bank(bank_name, sources, output_path=output_path)
                     
                     # Format as JSON-RPC response
                     if result.get('status') == 'success':
@@ -569,7 +660,6 @@ def main():
                     'error': {
                         'message': str(e),
                         'type': type(e).__name__,
-                        'traceback': traceback.format_exc()
                     }
                 }
                 print(json.dumps(error_response), flush=True)
