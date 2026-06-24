@@ -14,7 +14,7 @@ const { resolveBankFilePath } = await import(
   pathToFileURL(path.join(projectRoot, 'dist/lib/bank-name.js')).href
 );
 
-const invalidNames = ['../evil', '..\\evil', 'foo/bar', 'foo\\bar', '', 'a'.repeat(65)];
+const invalidNames = ['../evil', '..\\evil', '../../../tmp/evil', 'foo/bar', 'foo\\bar', '', 'a'.repeat(65)];
 let failed = 0;
 
 for (const name of invalidNames) {

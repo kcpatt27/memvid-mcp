@@ -70,20 +70,35 @@ Audit targets the **declared** requirements file (not necessarily the live `memv
 
 ## Audit runbook (repeat quarterly)
 
-```powershell
-# Node
-cd memvid-mcp
-npm install --package-lock-only
-npm audit
-npm audit --json > docs/audit/npm-audit.json
+**Schedule:** first week of March, June, September, December.
 
-# Python (live venv)
-.\memvid-env\Scripts\pip install pip-audit
-.\memvid-env\Scripts\pip-audit -r memvid\requirements.txt | Tee-Object docs\audit\pip-audit.txt
+```powershell
+cd memvid-mcp
+git pull
+npm ci
+npm run audit
+npm audit --json > docs/audit/npm-audit.json
+npm run test:security
+
+.\memvid-env\Scripts\pip install -U pip-audit
+.\memvid-env\Scripts\pip-audit -r python\requirements.txt | Tee-Object docs\audit\pip-audit.txt
 .\memvid-env\Scripts\pip-audit  # installed packages in venv
+
+npm test  # optional full smoke (requires PYTHON_EXECUTABLE + memvid-env)
 ```
 
+Record the audit date at the top of this file and in commit message if findings change.
+
 Optional: [OSV-Scanner](https://google.github.io/osv-scanner/) across the repo root.
+
+### memvid submodule
+
+The [`memvid`](../memvid) directory is a **read-only git submodule** (`Olow304/memvid`). We cannot push pinned requirements upstream. Supply-chain pins live in [`python/requirements.txt`](../python/requirements.txt). Update the submodule when upstream releases matter:
+
+```powershell
+git submodule update --remote memvid
+pip install -e .\memvid
+```
 
 ---
 
@@ -139,11 +154,18 @@ Implement in order across follow-up passes. Each pass should include regression 
 
 ### Pass 5 — Ongoing
 
-- [ ] Quarterly audit runbook (above)
-- [ ] Security regression tests in `tests/security/`:
-  - Path traversal: `create_memory_bank` with `name: "../../../tmp/evil"`
-  - File exfil probe with sensitive path (expect deny after Pass 3)
-  - SSRF probe against `169.254.169.254` (expect deny after Pass 3)
+- [x] Quarterly audit runbook (above)
+- [x] Security regression tests in `tests/security/`:
+  - Path traversal: bank name `../../../tmp/evil` ([`bank-name.test.mjs`](../tests/security/bank-name.test.mjs))
+  - File exfil probe with sensitive path ([`path-probes.test.mjs`](../tests/security/path-probes.test.mjs))
+  - SSRF probe against `169.254.169.254` ([`ssrf-probe.py`](../tests/security/ssrf-probe.py))
+
+### Fixes applied in Pass 5 (2026-06-24)
+
+- [`tests/security/path-probes.test.mjs`](../tests/security/path-probes.test.mjs) — sensitive path + traversal source denial
+- [`tests/security/ssrf-probe.py`](../tests/security/ssrf-probe.py) — bridge URL policy regression (metadata IP, loopback, non-HTTPS)
+- [`tests/security/ssrf-probe.test.mjs`](../tests/security/ssrf-probe.test.mjs) — Node runner for Python SSRF probes
+- [`docs/SECURITY.md`](../docs/SECURITY.md) — quarterly runbook, submodule note, `python/requirements.txt` audit path
 
 ---
 

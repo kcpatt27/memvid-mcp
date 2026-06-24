@@ -22,7 +22,7 @@
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "test": "node tests/smoke-test.mjs",
-    "test:security": "node tests/security/bank-name.test.mjs && node tests/security/source-policy.test.mjs",
+    "test:security": "node tests/security/bank-name.test.mjs && node tests/security/source-policy.test.mjs && node tests/security/path-probes.test.mjs && node tests/security/ssrf-probe.test.mjs",
     "audit": "npm audit --audit-level=high",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
