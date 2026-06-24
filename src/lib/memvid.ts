@@ -344,7 +344,7 @@ export class DirectMemvidIntegration {
         chunk_size: this.memvidConfig.chunk_size,
         overlap: this.memvidConfig.overlap,
         embedding_model: this.memvidConfig.embedding_model
-      });
+      }, 180000);
 
       return {
         success: result.success,

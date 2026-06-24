@@ -1,0 +1,17 @@
+# Paste into home-agent (or atlas) OpenJarvis TOML — memvid alongside perplexica.
+# Set PYTHON_EXECUTABLE, MEMORY_BANKS_DIR, MEMVID_ALLOWED_PATHS before `ha serve`.
+
+[tools.mcp]
+enabled = true
+# Add memvid object to your existing servers JSON array (keep perplexica entry).
+servers = '''[
+  {"name": "perplexica", "command": "node", "args": ["C:\\Users\\kcpat\\projects\\personal-projects\\perplexica-mcp\\dist\\index.js"]},
+  {"name": "memvid", "command": "node", "args": ["C:\\Users\\kcpat\\projects\\personal-projects\\memvid-mcp\\dist\\server.js", "--mcp"]}
+]'''
+
+[agent]
+# Append memvid tools to your existing list (comma-separated).
+# tools = "calculator,think,perplexica_web_search,perplexica_research,search_memory,list_memory_banks,get_context"
+
+[tools]
+# enabled = ["calculator", "think", "perplexica_web_search", "search_memory", "list_memory_banks", "get_context"]
