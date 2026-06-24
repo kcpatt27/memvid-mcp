@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-24
+
+### Added
+- Security passes 4–5: `package-lock.json`, CI audit workflow, Dependabot, pinned `python/requirements.txt`
+- Security regression tests: path exfil probes, SSRF probes (`tests/security/`)
+- `config/mcp.example.json` — Cursor MCP configuration template
+- `npm run audit` script
+
+### Fixed
+- **`--check` false negative**: MemVid detection uses `importlib.metadata` + `MemvidEncoder` import (avoids `./memvid` submodule shadowing)
+- **Cursor MCP config**: writes to modern `~/.cursor/mcp.json` with `PYTHON_EXECUTABLE` and workspace env vars
+- **Cross-platform build**: Node-based copy scripts for Linux CI
+
+### Changed
+- Direct Python bridge is the documented architecture (subprocess bottleneck removed)
+- README and ROADMAP updated for June 2026 production-ready status
+
 ## [1.1.10] - 2025-01-09
 
 ### 🚨 Critical Bug Fix - Python Bridge Health Check

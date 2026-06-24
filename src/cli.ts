@@ -15,7 +15,8 @@ import {
   addMemvidMCPServer, 
   isMemvidMCPConfigured, 
   backupCursorSettings,
-  getCursorSettingsPath 
+  getCursorSettingsPath,
+  buildMemvidServerConfig,
 } from './lib/cursor-config.js';
 
 // Get package info for version display
@@ -165,7 +166,10 @@ function showConfiguration() {
   console.log('        }');
   console.log('      }');
   console.log('    }');
-  console.log('  }\n');
+  console.log('\n📝 Example ~/.cursor/mcp.json entry (see config/mcp.example.json):');
+  const example = buildMemvidServerConfig();
+  console.log(JSON.stringify({ mcpServers: { memvid: example } }, null, 2));
+  console.log('');
 }
 
 function displaySetupStatus(status: SetupStatus, showRecommendations: boolean = true) {
@@ -211,24 +215,27 @@ function displaySetupStatus(status: SetupStatus, showRecommendations: boolean = 
 }
 
 async function setupCursorConfiguration(): Promise<boolean> {
-  console.log('🔍 Detecting platform and Cursor installation...');
-  
-  const platform = detectPlatform();
-  console.log(`   Platform: ${platform.platform}`);
-  
-  const cursorPath = findCursorInstallation();
-  if (!cursorPath) {
-    console.error('❌ Cursor installation not found');
-    console.log('\nPlease ensure Cursor is installed and try again.');
-    console.log('Download Cursor from: https://cursor.sh');
+  const settingsPath = getCursorSettingsPath();
+  if (!settingsPath) {
+    console.error('❌ Unable to create Cursor MCP config (~/.cursor/mcp.json)');
     return false;
   }
-  
-  console.log(`   Cursor found: ${cursorPath}`);
-  
+
+  console.log('🔍 Configuring Cursor MCP...');
+  console.log(`   Config file: ${settingsPath}`);
+
+  const platform = detectPlatform();
+  console.log(`   Platform: ${platform.platform}`);
+
+  const cursorPath = findCursorInstallation();
+  if (cursorPath) {
+    console.log(`   Cursor found: ${cursorPath}`);
+  }
+
+  const setup = await AutoSetup.detectSetup();
+
   if (isMemvidMCPConfigured()) {
-    console.log('✅ MemVid MCP server is already configured in Cursor');
-    console.log('   Updating configuration with current path...');
+    console.log('✅ MemVid MCP server is already configured — updating entry');
   } else {
     console.log('📝 Adding MemVid MCP server to Cursor configuration...');
   }
@@ -238,7 +245,8 @@ async function setupCursorConfiguration(): Promise<boolean> {
     console.log(`   Backup created: ${backupPath}`);
   }
   
-  const success = addMemvidMCPServer();
+  const memvidOptions = setup.pythonPath ? { pythonPath: setup.pythonPath } : undefined;
+  const success = addMemvidMCPServer(memvidOptions);
   
   if (success) {
     console.log('✅ MemVid MCP server configured successfully!');
@@ -250,19 +258,15 @@ async function setupCursorConfiguration(): Promise<boolean> {
     console.log('4. Available tools: create_memory_bank, search_memory, list_memory_banks');
     console.log('\nCreate your first memory bank:');
     console.log('   Use "create_memory_bank" tool with your project files');
+    if (!setup.isReady) {
+      console.log('\n⚠️  Setup detected issues — run: npx @kcpatt27/memvid-mcp --check');
+    }
     return true;
   } else {
     console.error('❌ Failed to configure Cursor');
-    console.log('\nManual configuration needed:');
-    console.log('Add this to your Cursor settings.json:');
-    console.log('{');
-    console.log('  "mcpServers": {');
-    console.log('    "memvid": {');
-    console.log('      "command": "npx",');
-    console.log('      "args": ["-y", "@kcpatt27/memvid-mcp", "--server"]');
-    console.log('    }');
-    console.log('  }');
-    console.log('}');
+    console.log('\nManual configuration — add to ~/.cursor/mcp.json:');
+    const example = buildMemvidServerConfig(memvidOptions);
+    console.log(JSON.stringify({ mcpServers: { memvid: example } }, null, 2));
     return false;
   }
 }

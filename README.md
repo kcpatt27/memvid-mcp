@@ -46,7 +46,7 @@ MemVid MCP solves the problem of making large codebases, documentation, and proj
 
 ## Tech Stack
 
-- **Runtime**: Node.js 18+ (TypeScript)
+- **Runtime**: Node.js 20+ (TypeScript) — see [`.nvmrc`](.nvmrc)
 - **Protocol**: Model Context Protocol (MCP) - JSON-RPC over stdio
 - **Python Integration**: Python 3.8+ with MemVid library
 - **Core Libraries**:
@@ -63,7 +63,7 @@ MemVid MCP solves the problem of making large codebases, documentation, and proj
 
 Before installing, ensure you have:
 
-- **Node.js 18+** - [Download here](https://nodejs.org/)
+- **Node.js 20+** — [Download here](https://nodejs.org/) (LTS recommended)
 - **Python 3.8+** - [Download here](https://python.org/)
 - **Cursor** (optional) - [Download here](https://cursor.sh/) - Required for Cursor integration
 
@@ -121,21 +121,66 @@ npm install
 # Build the project
 npm run build
 
-# Install Python dependencies
-pip install memvid
+# Install Python deps (pinned) + memvid submodule
+python -m venv memvid-env
+.\memvid-env\Scripts\pip install -r python\requirements.txt
+.\memvid-env\Scripts\pip install -e .\memvid
 
-# Test locally
+# Build and verify
+npm install && npm run build
+$env:PYTHON_EXECUTABLE = ".\memvid-env\Scripts\python.exe"
+npm test
 node dist/cli.js --check
+
+# Wire Cursor MCP config (~/.cursor/mcp.json)
+node dist/cli.js
 ```
 
 ### Environment Variables
 
-Optional environment variables for custom configuration:
+| Variable | Purpose |
+|----------|---------|
+| `PYTHON_EXECUTABLE` | Path to Python with `memvid` installed (required for npx installs) |
+| `MEMORY_BANKS_DIR` | Where `.mp4` / `.faiss` / `.json` banks are stored (default: `./memory-banks`) |
+| `MEMVID_WORKSPACE_ROOT` | Extra allowed root for `file` / `directory` sources |
+| `MEMVID_ALLOWED_PATHS` | Path-delimited list of additional allowed read roots |
+| `MEMVID_ALLOW_URL_SOURCES` | Set `true` to enable URL sources (HTTPS only; SSRF protections apply) |
+| `MEMVID_CONFIG_PATH` | Custom server config JSON path |
+| `LOG_LEVEL` | `info`, `warn`, `error`, `debug` |
 
-- `MEMORY_BANKS_DIR` - Custom directory for memory banks (default: `./memory-banks`)
-- `PYTHON_EXECUTABLE` - Custom Python executable path (default: auto-detected)
-- `MEMVID_CONFIG_PATH` - Custom configuration file path
-- `LOG_LEVEL` - Logging level: `info`, `warn`, `error`, `debug` (default: `info`)
+See [`config/mcp.example.json`](config/mcp.example.json) and [`docs/SECURITY.md`](docs/SECURITY.md) for the trust model.
+
+### Cursor MCP configuration
+
+Cursor reads global MCP servers from **`~/.cursor/mcp.json`** (Windows: `%USERPROFILE%\.cursor\mcp.json`).
+
+**Automatic setup** (merges with existing servers):
+
+```bash
+npx @kcpatt27/memvid-mcp
+# or from a local clone:
+node dist/cli.js
+```
+
+**Manual example** (npx + venv Python):
+
+```json
+{
+  "mcpServers": {
+    "memvid": {
+      "command": "npx",
+      "args": ["-y", "@kcpatt27/memvid-mcp", "--server"],
+      "env": {
+        "PYTHON_EXECUTABLE": "C:\\path\\to\\memvid-env\\Scripts\\python.exe",
+        "MEMORY_BANKS_DIR": "C:\\path\\to\\memory-banks",
+        "MEMVID_WORKSPACE_ROOT": "C:\\path\\to\\your\\project"
+      }
+    }
+  }
+}
+```
+
+Restart Cursor after editing MCP config.
 
 ## Usage / Getting Started
 
@@ -238,8 +283,8 @@ MemVid MCP Server acts as a bridge between AI assistants (via MCP protocol) and 
 │  └──────────┬───────────────┘ │
 │             │                  │
 │  ┌──────────▼───────────────┐ │
-│  │  MemVid Bridge            │ │  Python subprocess communication
-│  │  (Python Integration)    │ │
+│  │  MemVid Bridge            │ │  Persistent Python JSON-RPC (memvid-bridge.py)
+│  │  (Direct Integration)    │ │
 │  └──────────┬───────────────┘ │
 └────────────┼──────────────────┘
               │ Python subprocess
@@ -297,10 +342,9 @@ MemVid MCP Server acts as a bridge between AI assistants (via MCP protocol) and 
 - Bridges to Python MemVid library
 
 **MemVid Bridge (Python)**
-- Spawns Python subprocess with MemVid library loaded
-- Marshals data between Node.js and Python
-- Handles Python environment detection
-- Manages subprocess lifecycle
+- Persistent Python process with MemVid loaded (`memvid-bridge.py`)
+- JSON-RPC over stdin/stdout
+- Path allowlist and URL policy enforced at read time
 
 **MemVid Library (Python)**
 - Encodes text as MP4 videos with QR codes
@@ -444,41 +488,31 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 
 ## Project Status
 
-**Status:** 75% Complete (Core features shipped, working on performance optimization & UX improvements)
+**Status:** Production-ready for local MCP use (v1.2.0, June 2026)
 
-**Progress:** `████████████████████░░░░` 75%
+**Completed (2026):**
+- ✅ Direct Python bridge — persistent `memvid-bridge.py`, ~3–10s create+search smoke test
+- ✅ Security hardening passes 2–5 — path policy, SSRF guards, supply chain CI ([`docs/SECURITY.md`](docs/SECURITY.md))
+- ✅ Cross-platform build + `npm ci` on GitHub Actions
+- ✅ 7 MCP tools, enhanced search, caching, health monitoring
+- ✅ Cursor `~/.cursor/mcp.json` auto-configuration
 
-**Completed Features:**
-- ✅ Core MCP infrastructure and protocol implementation
-- ✅ Enhanced semantic search with filtering and sorting
-- ✅ Memory bank creation and management (7 MCP tools)
-- ✅ Search result caching (1,900x speedup for cached queries)
-- ✅ Production reliability and error handling
-- ✅ Health monitoring and diagnostics
-- ✅ Cross-platform support (Windows, macOS, Linux)
-- ✅ One-command installation via npx
+**Optional next:**
+- Performance monitoring dashboard
+- npm publish cadence / Dependabot PR triage
 
-**In Progress:**
-- 🔄 Direct Python integration (ETA: 2-3 weeks) - Critical performance fix
-- 🔄 Enhanced error recovery (ETA: 1 week)
-- 🔄 Documentation improvements (ETA: 1 week)
-- 🔄 Performance monitoring dashboard (ETA: 1 week)
-
-**Stats:**
-- **Lines of code:** ~6,000+ (TypeScript/JavaScript)
-- **Test coverage:** 50+ test files (unit, integration, performance, MCP protocol)
-- **Documentation coverage:** 100% (README, ARCHITECTURE, ROADMAP, CONTRIBUTING)
-- **Last updated:** January 2025
+**Last updated:** June 2026
 
 ## Roadmap
 
 See [ROADMAP.md](ROADMAP.md) for the complete development roadmap.
 
 **Current Focus:**
-- Architecture optimization (direct Python integration)
-- Performance improvements (target: 3-5s memory bank creation)
-- Enhanced search capabilities
-- Better error handling and diagnostics
+- Dependabot / quarterly security audits
+- UX polish and published npm package maintenance
+
+**Recently shipped (2026):**
+- Direct Python bridge, security passes 2–5, CI audit workflow
 
 **Upcoming:**
 - Real-time memory bank updates

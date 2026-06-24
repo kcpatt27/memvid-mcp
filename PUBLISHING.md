@@ -86,8 +86,8 @@ npx @kcpatt27/memvid-mcp --help
 
 ### 3. Tag Release
 ```bash
-git tag -a v1.1.15 -m "Release v1.1.15"
-git push origin v1.1.15
+git tag -a v1.2.0 -m "Release v1.2.0"
+git push origin v1.2.0
 ```
 
 ## Troubleshooting

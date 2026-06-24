@@ -164,9 +164,24 @@ export class AutoSetup {
     try {
       const checkScript = `
 import sys
+
+# Avoid cwd shadowing (e.g. ./memvid submodule folder without __init__.py)
+if '' in sys.path:
+    sys.path.remove('')
+
 try:
-    import memvid
-    print(f"MEMVID_VERSION:{memvid.__version__}")
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    from importlib_metadata import version, PackageNotFoundError
+
+try:
+    from memvid.encoder import MemvidEncoder
+    try:
+        pkg_version = version('memvid')
+    except PackageNotFoundError:
+        import memvid
+        pkg_version = getattr(memvid, '__version__', 'unknown')
+    print(f"MEMVID_VERSION:{pkg_version}")
     print("MEMVID_INSTALLED:true")
 except ImportError as e:
     print(f"MEMVID_ERROR:{str(e)}")
@@ -261,8 +276,15 @@ except Exception as e:
    * Run Python script and capture output
    */
   private static async runPythonScript(pythonCmd: string, script: string): Promise<string> {
+    const resolvedPython = path.isAbsolute(pythonCmd)
+      ? pythonCmd
+      : path.resolve(process.cwd(), pythonCmd);
+
     return new Promise((resolve, reject) => {
-      const process = spawn(pythonCmd, ['-c', script], { stdio: 'pipe' });
+      const process = spawn(resolvedPython, ['-c', script], {
+        stdio: 'pipe',
+        cwd: os.tmpdir(),
+      });
       let output = '';
       let error = '';
 

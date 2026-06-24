@@ -28,24 +28,23 @@ MemVid MCP Server enables AI assistants (like Cursor and Claude Desktop) to unde
 
 ## Project Status Summary
 
-**Status:** 75% Complete (Core features shipped, working on performance optimization & UX improvements)
+**Status:** Production-ready for local MCP (v1.2.0, June 2026)
 
-**Progress:** `████████████████████░░░░` 75%
+**Progress:** `████████████████████████` ~95% (core + security complete)
 
 **Completed Features:**
 - ✅ Core MCP infrastructure and protocol implementation
 - ✅ Enhanced semantic search with filtering and sorting
 - ✅ Memory bank creation and management (7 MCP tools)
-- ✅ Search result caching (1,900x speedup for cached queries)
-- ✅ Production reliability and error handling
-- ✅ Health monitoring and diagnostics
-- ✅ Cross-platform support (Windows, macOS, Linux)
-- ✅ One-command installation via npx
+- ✅ Direct Python bridge (`memvid-bridge.py`) — smoke test passing
+- ✅ Security hardening passes 2–5 ([docs/SECURITY.md](docs/SECURITY.md))
+- ✅ Supply chain CI (`npm audit`, `pip-audit`, Dependabot)
+- ✅ Search result caching, health monitoring, cross-platform support
+- ✅ Cursor `~/.cursor/mcp.json` configuration
 
 **In Progress:**
-- 🔄 Security hardening (see [docs/SECURITY.md](docs/SECURITY.md)) — audit complete, implementation in Pass 2–5
-- 🔄 Documentation improvements (ETA: 1 week)
-- 🔄 Performance monitoring dashboard (ETA: 1 week)
+- 🔄 Performance monitoring dashboard (optional)
+- 🔄 Dependabot PR triage
 
 **Recently completed (2026-06):**
 - ✅ Direct Python bridge integration (Phase 3a) — persistent `memvid-bridge.py`, lazy loading
@@ -66,7 +65,7 @@ MemVid MCP Server enables AI assistants (like Cursor and Claude Desktop) to unde
 
 ## Current Status
 
-**Latest Version:** v1.1.15 (January 2025)
+**Latest Version:** v1.2.0 (June 2026)
 
 **Release Date:** January 9, 2025 (v1.1.10 critical bug fix), Initial release December 24, 2024 (v1.0.0)
 

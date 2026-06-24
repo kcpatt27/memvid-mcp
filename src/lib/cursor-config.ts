@@ -1,43 +1,53 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
-import { findCursorInstallation, createDirectoryIfNotExists, isWritable, resolveServerPath } from './platform-utils.js';
+import { findCursorInstallation, createDirectoryIfNotExists, isWritable, resolveServerPath, getPackageInstallPath } from './platform-utils.js';
 
 export interface MCPServerConfig {
   command: string;
   args: string[];
   env?: Record<string, string>;
+  cwd?: string;
 }
 
 export interface MCPConfiguration {
   mcpServers: Record<string, MCPServerConfig>;
 }
 
+/** Modern Cursor global MCP config (~/.cursor/mcp.json). */
+export function getCursorMcpConfigPath(): string {
+  return path.join(os.homedir(), '.cursor', 'mcp.json');
+}
+
 export function getCursorSettingsPath(): string | null {
+  const mcpPath = getCursorMcpConfigPath();
+  if (createDirectoryIfNotExists(path.dirname(mcpPath)) && isWritable(path.dirname(mcpPath))) {
+    return mcpPath;
+  }
+
+  // Legacy fallback: Cursor User settings.json
   const cursorPath = findCursorInstallation();
   if (!cursorPath) {
     return null;
   }
-  
-  // MCP settings are typically stored in settings.json or a specific MCP config file
-  const possiblePaths = [
+
+  const legacyPaths = [
     path.join(cursorPath, 'settings.json'),
     path.join(cursorPath, 'globalStorage', 'cursor.mcp-settings'),
-    path.join(cursorPath, 'globalStorage', 'settings.json')
+    path.join(cursorPath, 'globalStorage', 'settings.json'),
   ];
-  
-  // Check if any of these paths exist and are writable
-  for (const settingsPath of possiblePaths) {
+
+  for (const settingsPath of legacyPaths) {
     if (fs.existsSync(settingsPath) && isWritable(path.dirname(settingsPath))) {
       return settingsPath;
     }
   }
-  
-  // If none exist, use the primary settings.json path
+
   const primaryPath = path.join(cursorPath, 'settings.json');
   if (createDirectoryIfNotExists(path.dirname(primaryPath))) {
     return primaryPath;
   }
-  
+
   return null;
 }
 
@@ -46,24 +56,22 @@ export function readCursorSettings(): MCPConfiguration | null {
   if (!settingsPath) {
     return null;
   }
-  
+
   try {
     if (!fs.existsSync(settingsPath)) {
-      // Return empty configuration if file doesn't exist
       return { mcpServers: {} };
     }
-    
+
     const content = fs.readFileSync(settingsPath, 'utf8');
     const settings = JSON.parse(content);
-    
-    // Ensure mcpServers section exists
+
     if (!settings.mcpServers) {
       settings.mcpServers = {};
     }
-    
+
     return settings as MCPConfiguration;
   } catch (error) {
-    console.error(`Failed to read Cursor settings from ${settingsPath}:`, error);
+    console.error(`Failed to read Cursor MCP config from ${settingsPath}:`, error);
     return null;
   }
 }
@@ -73,49 +81,68 @@ export function writeCursorSettings(config: MCPConfiguration): boolean {
   if (!settingsPath) {
     return false;
   }
-  
+
   try {
-    // Create directory if it doesn't exist
     createDirectoryIfNotExists(path.dirname(settingsPath));
-    
-    // Write the configuration with pretty formatting
     const content = JSON.stringify(config, null, 2);
     fs.writeFileSync(settingsPath, content, 'utf8');
-    
     return true;
   } catch (error) {
-    console.error(`Failed to write Cursor settings to ${settingsPath}:`, error);
+    console.error(`Failed to write Cursor MCP config to ${settingsPath}:`, error);
     return false;
   }
 }
 
-export function addMemvidMCPServer(): boolean {
+export function buildMemvidServerConfig(options?: { pythonPath?: string }): MCPServerConfig {
+  const packagePath = getPackageInstallPath();
+  const serverPath = resolveServerPath();
+  const memoryBanksDir = process.env.MEMORY_BANKS_DIR || path.join(packagePath, 'memory-banks');
+
+  const env: Record<string, string> = {
+    MEMORY_BANKS_DIR: memoryBanksDir,
+    MEMVID_WORKSPACE_ROOT: packagePath,
+    PYTHONIOENCODING: 'utf-8',
+    PYTHONUTF8: '1',
+  };
+
+  const pythonPath = options?.pythonPath || process.env.PYTHON_EXECUTABLE;
+  if (pythonPath) {
+    env.PYTHON_EXECUTABLE = path.isAbsolute(pythonPath)
+      ? pythonPath
+      : path.resolve(packagePath, pythonPath);
+  }
+
+  if (fs.existsSync(serverPath)) {
+    return {
+      command: process.execPath,
+      args: [serverPath, '--mcp'],
+      env,
+    };
+  }
+
+  return {
+    command: 'npx',
+    args: ['-y', '@kcpatt27/memvid-mcp', '--server'],
+    env,
+  };
+}
+
+export function addMemvidMCPServer(options?: { pythonPath?: string }): boolean {
   const config = readCursorSettings();
   if (!config) {
-    console.error('Unable to read Cursor configuration');
+    console.error('Unable to read Cursor MCP configuration');
     return false;
   }
-  
-  // Check if MemVid MCP server is already configured
+
+  const serverConfig = buildMemvidServerConfig(options);
+
   if (config.mcpServers.memvid) {
-    console.log('MemVid MCP server is already configured in Cursor');
-    
-    // Update the configuration with npx command
-    config.mcpServers.memvid = {
-      command: 'npx',
-      args: ['-y', '@kcpatt27/memvid-mcp', '--server']
-    };
+    console.log('MemVid MCP server is already configured — updating entry');
   } else {
-    // Add new MemVid MCP server configuration
-    config.mcpServers.memvid = {
-      command: 'npx',
-      args: ['-y', '@kcpatt27/memvid-mcp', '--server']
-    };
-    
-    console.log('Adding MemVid MCP server configuration to Cursor');
+    console.log('Adding MemVid MCP server to Cursor MCP configuration');
   }
-  
-  // Write the updated configuration
+
+  config.mcpServers.memvid = serverConfig;
   return writeCursorSettings(config);
 }
 
@@ -124,13 +151,13 @@ export function removeMemvidMCPServer(): boolean {
   if (!config) {
     return false;
   }
-  
+
   if (config.mcpServers.memvid) {
     delete config.mcpServers.memvid;
     return writeCursorSettings(config);
   }
-  
-  return true; // Already not present
+
+  return true;
 }
 
 export function isMemvidMCPConfigured(): boolean {
@@ -143,11 +170,10 @@ export function backupCursorSettings(): string | null {
   if (!settingsPath || !fs.existsSync(settingsPath)) {
     return null;
   }
-  
+
   try {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = `${settingsPath}.backup-${timestamp}`;
-    
     fs.copyFileSync(settingsPath, backupPath);
     return backupPath;
   } catch (error) {
@@ -161,7 +187,7 @@ export function restoreCursorSettings(backupPath: string): boolean {
   if (!settingsPath) {
     return false;
   }
-  
+
   try {
     fs.copyFileSync(backupPath, settingsPath);
     return true;
@@ -169,4 +195,4 @@ export function restoreCursorSettings(backupPath: string): boolean {
     console.error('Failed to restore backup:', error);
     return false;
   }
-} 
+}

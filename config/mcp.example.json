@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "memvid": {
+      "command": "npx",
+      "args": ["-y", "@kcpatt27/memvid-mcp", "--server"],
+      "env": {
+        "PYTHON_EXECUTABLE": "C:\\path\\to\\memvid-env\\Scripts\\python.exe",
+        "MEMORY_BANKS_DIR": "C:\\path\\to\\memvid-mcp\\memory-banks",
+        "MEMVID_WORKSPACE_ROOT": "C:\\path\\to\\your\\project",
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}
