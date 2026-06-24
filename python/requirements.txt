@@ -20,4 +20,4 @@ ebooklib==0.18
 # Optional LLM provider imports
 openai==1.82.0
 google-generativeai==0.8.5
-anthropic==0.52.2
+anthropic==0.111.0
