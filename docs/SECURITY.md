@@ -125,10 +125,17 @@ Implement in order across follow-up passes. Each pass should include regression 
 
 ### Pass 4 — Supply chain hygiene
 
-- [ ] Commit `package-lock.json`; remove `*.lock` from `.gitignore` (or maintain CI-only lock)
-- [ ] Pin all Python deps in `memvid/requirements.txt`; add `pip-audit` to CI
-- [ ] Enable Dependabot or Renovate for npm + pip
-- [ ] Add `.nvmrc` with Node 18+
+- [x] Commit `package-lock.json`; remove `package-lock.json` from `.gitignore`
+- [x] Pin all Python deps in `python/requirements.txt`; add `pip-audit` to CI
+- [x] Enable Dependabot for npm + pip ([`.github/dependabot.yml`](../.github/dependabot.yml))
+- [x] Add `.nvmrc` with Node 20
+
+### Fixes applied in Pass 4 (2026-06-24)
+
+- [`.nvmrc`](../.nvmrc) — Node 20 for local/CI parity
+- [`package-lock.json`](../package-lock.json) — reproducible npm installs
+- [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) — `npm audit`, `npm run test:security`, `pip-audit` on push/PR/monthly
+- [`python/requirements.txt`](../python/requirements.txt) — fully pinned versions (audit-clean baseline; parent-owned because `memvid` is an upstream submodule)
 
 ### Pass 5 — Ongoing
 

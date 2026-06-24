@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-*.lock
 
 # Build output
 dist/
@@ -62,8 +61,7 @@ Thumbs.db
 *.swo
 *~
 
-# Package manager
-package-lock.json
+# Package manager (package-lock.json is committed for reproducible installs)
 yarn.lock
 pnpm-lock.yaml
 
