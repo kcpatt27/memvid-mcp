@@ -17,8 +17,8 @@
   ],
   "scripts": {
     "build": "tsc && npm run copy-python && npm run copy-config",
-    "copy-python": "cp src/lib/memvid-bridge.py dist/lib/ || copy src\\lib\\memvid-bridge.py dist\\lib\\",
-    "copy-config": "mkdir -p dist/config && cp config/default.json dist/config/ || (mkdir dist\\config & copy config\\default.json dist\\config\\)",
+    "copy-python": "node --input-type=module -e \"import { copyFileSync, mkdirSync } from 'node:fs'; mkdirSync('dist/lib', { recursive: true }); copyFileSync('src/lib/memvid-bridge.py', 'dist/lib/memvid-bridge.py');\"",
+    "copy-config": "node --input-type=module -e \"import { copyFileSync, mkdirSync } from 'node:fs'; mkdirSync('dist/config', { recursive: true }); copyFileSync('config/default.json', 'dist/config/default.json');\"",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "test": "node tests/smoke-test.mjs",
