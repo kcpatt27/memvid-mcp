@@ -22,6 +22,7 @@
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "test": "node tests/smoke-test.mjs",
+    "test:read-tools-smoke": "node tests/integration/read-tools-smoke.test.mjs",
     "test:security": "node tests/security/bank-name.test.mjs && node tests/security/source-policy.test.mjs && node tests/security/path-probes.test.mjs && node tests/security/ssrf-probe.test.mjs",
     "bank:agents": "node scripts/create-local-ai-bank.mjs",
     "audit": "npm audit --audit-level=high",
