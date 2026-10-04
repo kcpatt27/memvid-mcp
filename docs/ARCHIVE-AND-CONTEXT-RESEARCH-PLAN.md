@@ -161,3 +161,25 @@ Prior art to study before building anything: Claude Code `/context` + memory doc
 - No major feature work on `memvid-mcp`.
 - No migration to MemVid v2 as "saving" this project — the niche is occupied; if MemVid v2 is used later, it is as a tool inside research experiments, not as a product.
 - No attempt to grow the old npm package.
+
+---
+
+## Archive execution log (2026-10-04)
+
+Done on this machine:
+
+- Repo frozen: runtime state (`config/memory-banks.json`) discarded; test scripts, docs, and `.gitignore` cleanup committed (`965cc00`, `d77e2db`).
+- README deprecation banner + archived status added.
+- Career docs consolidated into `docs/CASE-STUDY.md`; originals preserved in git history (`965cc00`) then removed (`d77e2db`).
+- Pushed `main` and tag `v1.2.0-final`; local remote URL updated to `kcpatt27/memvid-mcp`.
+- Dependabot PRs #1–#15 closed with branches deleted.
+- GitHub repository archived via `gh repo archive`.
+
+Left for the owner (requires npm login on this machine):
+
+```bash
+npm login
+npm deprecate @kcpatt27/memvid-mcp "Deprecated: built on MemVid v1 (QR-based), deprecated upstream. See memvid/memvid v2."
+```
+
+To undo the deprecation later: `npm deprecate @kcpatt27/memvid-mcp ""`.
